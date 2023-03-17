@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+<title>Your cart</title>
+
+{% endblock %}
+
+{% block content %}
+
+<h1>Your cart</h1>
+{% for cart_item in cart_items %}
+    <p>{{ cart_item }}<a href="/api/connection/cart/{{ cart_item.id }}">View</a></p>
+{% endfor %}
+
+<label><a href="/api/connection/order/place/">Place order</a></label>
+
+<h1>Cart history</h1>
+{% for item in history %}
+    <p>{{ item }}<a href="/api/connection/cart/{{ cart_item.id }}">View</a></p>
+{% endfor %}
+
+{% endblock %}

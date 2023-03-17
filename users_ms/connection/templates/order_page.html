@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+<title>Order {{ order.id }}</title>
+
+{% endblock %}
+
+{% block content %}
+
+<p>{{ order }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="submit" value="Cancel order" />
+</form>
+
+{% endblock %}

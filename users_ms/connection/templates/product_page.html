@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block head %}
+
+<title>Product</title>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- {% for x in product.keys %}
+    <p>{{ product.x }}</p>
+{% endfor %} -->
+{{ product }}
+{{ inventory_item }}
+
+{% if can_edit %}
+    <p><a href="/api/connection/product/change/{{ product.id }}/">Edit</a></p>
+{% else %}
+    <p>
+        <form method="POST" action="http://127.0.0.1:5000/add/" enctype="multipart/form-data">
+            <input type="number" name="quantity" placeholder="Quantity" />
+            <input type="hidden" name="user_id" value="{{ user_id }}" />
+            <input type="hidden" name="product_id" value="{{ product.id }}" />
+            <input type="submit" name="btn-submit" value="Add to cart" />
+        </form>
+    </p>
+{% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,60 @@
+:root {
+    /* --light-1: #EEEDDE;
+    --light-2: #E0DDAA;
+    --dark-1: #203239;
+    --dark-2: #141E27; */
+    --light-1: #f6f6f6;
+    --light-2: #ffcb74;
+    --dark-1: #111;
+    --dark-2: #2f2f2f;
+}
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Ubuntu";
+}
+
+body {
+    width: 100vw;
+    min-height: 100vh;
+
+    background-color: var(--light-1);
+}
+
+.container {
+    width: 100vw;
+    min-height: 92vh;
+    height: 1px;
+
+    padding: 4% 5%;
+
+    display: flex;
+    
+    justify-content: center;
+    align-items: center;
+}
+
+.formbox {
+    width: 70%;
+    height: 100%;
+
+    padding: 1% 5%;
+
+    border-radius: 15px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    background-color: var(--light-1);
+
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;
+}
+
+.formbox > form {
+    width: 90%;
+    height: 80%;
+}

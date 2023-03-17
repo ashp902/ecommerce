@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Home</title>
+{% endblock %}
+
+{% block content %}
+
+<h1>Home</h1>
+
+<a href="/api/core/profile/">Profile</a>
+<a href="/api/connection/product/create/">Add a product</a>
+<a href="/api/core/logout/">Logout</a>
+
+<h1>Products</h1>
+{% for product in products %}
+    <p><span>{{ product }}</span><a href="/api/connection/product/{{ product.id }}/">Open</a></p>
+{% endfor %}
+
+<h1>Other products</h1>
+
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>ShopLift | Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'login.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{% include "components/navbar.html" %}
+
+<div class="container">
+    <div class="formbox">
+        <h1>Login</h1>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <table>
+                <tr><td colspan="2">{{ form.email }}</td></tr>
+                <tr><td colspan="2">{{ form.password }}</td></tr>
+                <tr><td colspan="2"><button type="submit" name="buyer" formaction="/api/core/login/">Login</button></td></tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

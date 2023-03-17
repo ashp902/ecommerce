@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+<title>Cart item</title>
+
+{% endblock %}
+
+{% block content %}
+
+{{ cart_item }}
+<form method="POST">
+    {% csrf_token %}
+    <input type="number" name="quantity" placeholder="Quantity" value="{{ cart_item.quantity }}" />
+    <input type="submit" value="Save Changes" />
+</form>
+
+{{ product }}
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="delete" value="True" />
+    <input type="submit" value="Remove from cart" />
+</form>
+
+{% endblock %}

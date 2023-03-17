@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Home</title>
+{% endblock %}
+
+{% block content %}
+
+<h1>Home</h1>
+
+<a href="/api/core/profile">Profile</a>
+<a href="/api/core/logout">Logout</a>
+
+<h1>Products</h1>
+{% for product in all_products %}
+    <p><span>{{ product }}</span><a href="/api/connection/product/{{ product.id }}/">Open</a></p>
+{% endfor %}
+
+<h1>Search</h1>
+<form method="GET" action="/api/connection/product/search/">
+    <input type="text" placeholder="Search" name="query" />
+    <input type="submit" value="Search" />
+</form>
+
+<a href="/api/connection/cart/">My cart</a>
+{% endblock %}

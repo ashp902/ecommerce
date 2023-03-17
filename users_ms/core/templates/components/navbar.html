@@ -1,0 +1,134 @@
+<style>
+input:focus, select:focus, textarea:focus, button:focus {outline: none;}
+
+a {
+    text-decoration: none;
+}
+
+.navbar {
+    width: 100vw;
+    height: 8vh;
+
+    padding: 0 3vw;
+
+    background-color: var(--dark-1);
+
+    display: flex;
+    flex-direction: row;
+
+    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
+}
+
+.navbrand {
+    min-width: 10%;
+    height: 100%;
+
+    padding: 1%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--light-1);
+}
+
+.navlink {
+    min-width: 6%;
+    height: 100%;
+
+    padding: 1%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 300ms;
+    cursor: pointer;
+
+    color: var(--light-1);
+}
+
+.navlink:hover {
+    background-color: var(--light-2);
+
+    color: var(--dark-2);
+}
+
+.navsearch {
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navsearch input{
+    height: 70%;
+    width: 50%;
+
+    border-radius: 10px;
+    border: 0;
+
+    background-color: var(--dark-2);
+
+    text-align: center;
+    color: var(--light-1);
+}
+
+.navdropdown {
+    min-width: 6%;
+    height: 100%;
+
+    padding: 1%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 300ms;
+    cursor: pointer;
+
+    color: var(--light-1); 
+}
+
+.navdropdown:hover {
+    background-color: var(--light-2);
+
+    color: var(--dark-2);
+}
+
+.navdropdown > ul {
+    top: 8vh;
+    left: 0;
+    position: relative;
+}
+
+.navdropdown:hover ul {
+    display: initial;
+}
+
+</style>
+
+<nav class="navbar">
+    <a href="/api/core/home/" class="navbrand">ShopLift</a>
+    <form method="POST" class="navsearch">
+        {% csrf_token %}
+        <input type="text" name="search" placeholder="Search" />
+    </form>
+    {% if user %}
+            {% if user.user_role_id == 1 %}
+                <a href="/api/connection/cart/" class="navlink">Cart</a>
+            {% endif %}
+        <a href="/api/core/profile/" class="navlink">Hello, {{ user.first_name }}</a>
+        <a href="/api/core/logout/" class="navlink">Logout</a>
+    {% else %}
+        <a href="/api/core/login/" class="navlink">Login</a>
+        <a href="/api/core/register/" class="navdropdown">
+            Register
+            <!-- <ul>
+                <li class="navlink">As Buyer</li>
+                <li class="navlink">As Seller</li>
+            </ul> -->
+        </a>
+    {% endif %}
+</nav>

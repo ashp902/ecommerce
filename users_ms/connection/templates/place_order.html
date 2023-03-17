@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+<title>Confirm your order</title>
+
+{% endblock %}
+
+{% block content %}
+
+{% for product in products%}
+    {{ product }}
+{% endfor %}
+
+<form method="POST">
+    {% csrf_token %}
+    <!-- {{ form.as_p }} -->
+    <select name="address">
+        {% for address in addresses %}
+            <option value="{{ address.id }}">{{ address }}</option>
+        {% endfor %}
+    </select>
+    <lable>{{ total_amount }}</lable><input type="submit" value="Proceed to payment" />
+</form>
+{% endblock %}

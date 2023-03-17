@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>ShopLift | Profile</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'profile.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{% include "components/navbar.html" %}
+
+<div class="container">
+
+    <div class="formbox">
+        <h1 style="width: 90%; height: 10%;text-align: left;">Profile</h1>
+        <div style="display: flex; flex-direction: row; width: 90%; height: 80%;">
+            <div style="width: 50%; height: 100%; display: flex; justify-content: flex-start; align-items: center;">
+                <div class="pic"></div>
+            </div>
+            <div style="width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
+                {% if user.user_role_id == 1 %}
+                    <div style="display: flex; flex-direction: row; width: 100%; justify-content: flex-end;"><a style="color: var(--dark-1); text-decoration: underline;" href="/api/core/address/">View your addresses &#8811;</a></div>
+                {% endif %}
+                <form method="POST">
+                    <table>
+                        <tr><td>{{ form.first_name }}</td><td>{{ form.last_name }}</td></tr>
+                        <tr><td colspan="2"><input type="email" value="{{ user.email }}" disabled/></td></tr>
+                        <tr><td colspan="2"><input type="text" value="{{ user.username }}" disabled/></td></tr>
+                        <tr><td colspan="2">{{ form.password1 }}</td></tr>
+                        <tr><td colspan="2">{{ form.password2 }}</td></tr>
+                        <tr><td>{{ form.date_of_birth }}</td><td>{{ form.gender }}</td></tr>
+                        <tr><td colspan="2"><input type="submit" value="Save changes" /></td></tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock %}

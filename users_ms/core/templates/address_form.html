@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>ShopLift | Profile</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'address_form.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{% include "components/navbar.html" %}
+
+<div class="container">
+
+    <div class="formbox">
+        <h1 style="width: 90%; height: 10%;text-align: left;">Create a new address</h1>
+        <form method="POST">
+            <table>
+                <tr><td>{{ form.door_no }}</td></tr>
+                <tr><td>{{ form.street }}</td></tr>
+                <tr><td>{{ form.area }}</td></tr>
+                <tr><td>{{ form.city }}</td></tr>
+                <tr><td>{{ form.state }}</td></tr>
+                <tr><td>{{ form.country }}</td></tr>
+                <tr><td>{{ form.pincode }}</td></tr>
+
+            </table>
+        </form>
+    </div>
+
+</div>
+
+
+{% endblock %}

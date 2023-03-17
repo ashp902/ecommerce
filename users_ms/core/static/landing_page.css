@@ -1,0 +1,47 @@
+:root {
+    /* --light-1: #EEEDDE;
+    --light-2: #E0DDAA;
+    --dark-1: #203239;
+    --dark-2: #141E27; */
+    --light-1: #f6f6f6;
+    --light-2: #ffcb74;
+    --dark-1: #111;
+    --dark-2: #2f2f2f;
+}
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Ubuntu";
+}
+
+body {
+    width: 100vw;
+    min-height: 100vh;
+
+    background-color: var(--light-1);
+}
+
+.container {
+    width: 100vw;
+    min-height: 92vh;
+
+    padding: 4% 5%;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.productcard {
+    width: 25vw;
+    height: 50vh;
+
+    padding: 5vh 5vw;
+
+    border-radius: 5%;
+
+    background-color: var(--light-1);
+
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+}

@@ -2,3 +2,7 @@
 env/*
 
 .idea/*
+
+*.py[cod]
+
+*.sqlite3

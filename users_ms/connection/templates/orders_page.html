@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+<title>Your orders</title>
+
+{% endblock %}
+
+{% block content %}
+
+{% for order in orders%}
+    <p>
+        {{ order }}
+        {% if order.delivery_status != 'Cancelled' %}
+            <a href="/api/connection/order/{{ order.id }}/">View</a>
+        {% endif %}
+    </p>
+{% endfor %}
+
+{% endblock %}

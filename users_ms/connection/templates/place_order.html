@@ -1,25 +1,37 @@
 {% extends "base.html" %}
-
 {% block head %}
 
-<title>Confirm your order</title>
+<title>ShopLift | Order</title>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'place_order.css' %}">
 
 {% endblock %}
 
 {% block content %}
 
-{% for product in products%}
-    {{ product }}
-{% endfor %}
+{% include "components/navbar.html" %}
 
-<form method="POST">
-    {% csrf_token %}
-    <!-- {{ form.as_p }} -->
-    <select name="address">
-        {% for address in addresses %}
-            <option value="{{ address.id }}">{{ address }}</option>
-        {% endfor %}
-    </select>
-    <lable>{{ total_amount }}</lable><input type="submit" value="Proceed to payment" />
-</form>
+<div class="container">
+    <div class="card">
+        <h3>Total of your order</h3>
+        <h2>$ {{ subtotal }}</h2>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: row; width: 40%; height: 100%; align-items: center;">
+            <label>Select delivery address</label>
+            <select name="address">
+                {% for address in addresses %}
+                <option value="{{ address.id }}">
+                    <h1>{{ address.address_name }}</h1>
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" value="Proceed to payment" />
+    </form>
+
+</div>
+
 {% endblock %}

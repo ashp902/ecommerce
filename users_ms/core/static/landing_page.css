@@ -15,33 +15,102 @@
     font-family: "Ubuntu";
 }
 
-body {
+html {
     width: 100vw;
-    min-height: 100vh;
+    height: 100vh;
+    max-width: 100%;
+}
+
+body {
+    width: 100%;
+    min-height: 100%;
 
     background-color: var(--light-1);
 }
 
 .container {
-    width: 100vw;
+    width: 100%;
     min-height: 92vh;
+    height: fit-content;
 
     padding: 4% 5%;
 
     display: flex;
+    flex-direction: column;
+}
+
+.products {
+    width: 100%;
+    height: fit-content;
+    flex: 1;
+
+    display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+
+    justify-content: space-around;
 }
 
 .productcard {
     width: 25vw;
     height: 50vh;
 
-    padding: 5vh 5vw;
+    margin: 1vh 1vw;
+    padding: 5vh 2vw 2vh 2vw;
 
     border-radius: 5%;
 
     background-color: var(--light-1);
 
     box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.cardimg {
+    width: 100%;
+    height: 80%;
+
+    border-radius: 10px;
+}
+
+.cardtitle {
+    width: 100%;
+    height: 20%;
+
+    display: flex;
+    flex-direction: row;
+
+    justify-content: space-around;
+    align-items: center;
+
+    color: var(--dark-1);
+    font-size: 1.25em;
+}
+
+.pagenav {
+    width: 100%;
+    height: 5vh;
+
+    display: flex;
+    flex-direction: row;
+}
+
+.pagenav>a {
+    width: 6vw;
+    height: 100%;
+
+    border-radius: 10px;
+
+    background-color: var(--dark-1);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: var(--light-1);
+
+    cursor: pointer;
 }

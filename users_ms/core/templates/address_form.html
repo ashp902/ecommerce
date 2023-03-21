@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <title>ShopLift | Profile</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'address_form.css' %}">
+<title>ShopLift | Create new address</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'address_form.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,15 +15,32 @@
     <div class="formbox">
         <h1 style="width: 90%; height: 10%;text-align: left;">Create a new address</h1>
         <form method="POST">
+            {% csrf_token %}
             <table>
-                <tr><td>{{ form.door_no }}</td></tr>
-                <tr><td>{{ form.street }}</td></tr>
-                <tr><td>{{ form.area }}</td></tr>
-                <tr><td>{{ form.city }}</td></tr>
-                <tr><td>{{ form.state }}</td></tr>
-                <tr><td>{{ form.country }}</td></tr>
-                <tr><td>{{ form.pincode }}</td></tr>
+                <tr>
+                    <td colspan="2">{{ form.address_name }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.door_no }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.street }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.area }}</td>
+                </tr>
+                <tr>
+                    <td>{{ form.city }}</td>
+                    <td>{{ form.state }}</td>
+                </tr>
+                <tr>
+                    <td>{{ form.country }}</td>
+                    <td>{{ form.pincode }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="submit" value="Save address" /></td>
 
+                </tr>
             </table>
         </form>
     </div>

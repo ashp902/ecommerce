@@ -1,23 +1,108 @@
 {% extends "base.html" %}
-
 {% block head %}
 
-<title>Your cart</title>
+<title>ShopLift | Your cart</title>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'cart.css' %}">
 
 {% endblock %}
 
 {% block content %}
 
-<h1>Your cart</h1>
-{% for cart_item in cart_items %}
-    <p>{{ cart_item }}<a href="/api/connection/cart/{{ cart_item.id }}">View</a></p>
-{% endfor %}
+{% include "components/navbar.html" %}
 
-<label><a href="/api/connection/order/place/">Place order</a></label>
+<div class="container">
+    <div class="heading">
+        <h1>Your cart</h1>
+        <a href="/api/connection/order/place/">Place order</a>
+    </div>
 
-<h1>Cart history</h1>
-{% for item in history %}
-    <p>{{ item }}<a href="/api/connection/cart/{{ cart_item.id }}">View</a></p>
-{% endfor %}
+    {% if cart_items %}
+    {% for cart_item in cart_items %}
+    <div class="cartcard">
+        <div class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');">
+        </div>
+        <div class="details">
+            <h2>{{ cart_item.product.product_name }}</h2>
+            <p>{{ cart_item.product.product_description }}</p>
+        </div>
+        <div class="price">
+            {% if cart_item.product.discount > 0 %}
+            <span style="text-decoration: line-through; font-size: 1em">$ {{ cart_item.product.price }}</span>
+            <span style="font-size: 1.2em;">$ {{ cart_item.effective_price }}</span>
+            {% else %}
+            <span style="font-size: 1.2em;">$ {{ cart_item.product.price }}</span>
+            {% endif %}
+        </div>
+        <div class="controls">
+            <div class="quantity">
+                <a href="/api/connection/cart/update/minus/{{ cart_item.id }}/">-</a>
+                <span>{{ cart_item.quantity }}</span>
+                <a href="/api/connection/cart/update/plus/{{ cart_item.id }}/">+</a>
+            </div>
+            <a href="/api/connection/cart/delete/{{ cart_item.id }}/">Remove</a>
+        </div>
+        <div class="total">
+            $ {{ cart_item.product_total }}
+            <br />
+            <!-- {{cart_item}} -->
+        </div>
+    </div>
+    {% endfor %}
+    <div class="subtotal">
+        <h3>Subtotal:</h3>
+        <h2>$ {{ subtotal }}</h2>
+    </div>
+    {% else %}
+    <div
+        style="width: 80%; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 15px; box-shadow: rgba(17, 17, 26, 0.1) 0px 4px 16px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 56px; margin: 2% 0;">
+        Your cart is empty
+    </div>
+    {% endif %}
+
+
+
+
+    <h1>Cart history</h1>
+    {% if history %}
+    {% for cart_item in history %}
+    <div class="cartcard">
+        <div class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');">
+        </div>
+        <div class="details">
+            <h2>{{ cart_item.product.product_name }}</h2>
+            <p>{{ cart_item.product.product_description }}</p>
+        </div>
+        <div class="price">
+            {% if cart_item.product.discount > 0 %}
+            <span style="text-decoration: line-through; font-size: 1em">$ {{ cart_item.product.price }}</span>
+            <span style="font-size: 1.2em;">$ {{ cart_item.effective_price }}</span>
+            {% else %}
+            <span style="font-size: 1.2em;">$ {{ cart_item.product.price }}</span>
+            {% endif %}
+        </div>
+        <div class="controls">
+            <div class="quantity">
+                <span>{{ cart_item.quantity }}</span>
+            </div>
+            <a style="border: 1px solid #477547; background-color: #65a765;"
+                href="/api/connection/cart/addback/{{ cart_item.id }}/">Add back</a>
+            <a style="border: 1px solid #ef0e0e; background-color: #f44949;"
+                href="/api/connection/cart/delete/{{ cart_item.id }}/">Remove</a>
+        </div>
+        <div class="total">
+            $ {{ cart_item.product_total }}
+            <br />
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div
+        style="width: 80%; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 15px; box-shadow: rgba(17, 17, 26, 0.1) 0px 4px 16px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 56px; margin: 2% 0;">
+        No history
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}

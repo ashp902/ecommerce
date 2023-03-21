@@ -1,18 +1,19 @@
 {% extends "base.html" %}
-
 {% block head %}
 
-<title>Order {{ order.id }}</title>
+<title>ShopLift | Order</title>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'cart.css' %}">
 
 {% endblock %}
 
 {% block content %}
 
-<p>{{ order }}</p>
+{% include "components/navbar.html" %}
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="submit" value="Cancel order" />
-</form>
+<div class="container">
+
+</div>
 
 {% endblock %}

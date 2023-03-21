@@ -9,8 +9,19 @@
     --dark-2: #2f2f2f;
 }
 
-input:focus, select:focus, textarea:focus, button:focus {outline: 1px var(--dark-2) solid;}
-input:active, select:active, textarea:active, button:active {outline: 1px var(--dark-2) solid;}
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: 1px var(--dark-2) solid;
+}
+
+input:active,
+select:active,
+textarea:active,
+button:active {
+    outline: 1px var(--dark-2) solid;
+}
 
 * {
     margin: 0;
@@ -18,23 +29,29 @@ input:active, select:active, textarea:active, button:active {outline: 1px var(--
     font-family: "Ubuntu";
 }
 
-body {
+html {
     width: 100vw;
-    min-height: 100vh;
+    height: 100vh;
+    max-width: 100%;
+}
+
+body {
+    width: 100%;
+    min-height: 100%;
 
     background-color: var(--light-1);
 }
 
 .container {
-    width: 100vw;
+    width: 100%;
     min-height: 92vh;
-    height: 1px;
+    height: fit-content;
 
-    padding: 4% 5%;
+    padding: 4vh 5vw;
 
     display: flex;
     flex-direction: column;
-    
+
     justify-content: center;
     align-items: center;
 }
@@ -43,7 +60,7 @@ body {
     width: 70%;
     height: 100%;
 
-    padding: 1% 5%;
+    padding: 2% 5%;
 
     border-radius: 15px;
 
@@ -58,7 +75,7 @@ body {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;
 }
 
-.formbox > table {
+.formbox>table {
     margin: 0;
 }
 
@@ -66,7 +83,9 @@ td {
     padding: 5px;
 }
 
-input, select, button {
+input,
+select,
+button {
 
     height: 40px;
     width: 100%;
@@ -81,7 +100,9 @@ input, select, button {
     color: var(--dark-2);
 }
 
-select > option {color: var(--dark-2);}
+select>option {
+    color: var(--dark-2);
+}
 
 input[type='submit'] {
     background-color: var(--dark-2);
@@ -95,6 +116,5 @@ input[type='submit'] {
     width: 250px;
     height: 250px;
 
-    border: 1px black solid;
     border-radius: 50%;
 }

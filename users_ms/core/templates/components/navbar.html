@@ -1,134 +1,149 @@
 <style>
-input:focus, select:focus, textarea:focus, button:focus {outline: none;}
+    input:focus,
+    select:focus,
+    textarea:focus,
+    button:focus {
+        outline: none;
+    }
 
-a {
-    text-decoration: none;
-}
+    a {
+        text-decoration: none;
+    }
 
-.navbar {
-    width: 100vw;
-    height: 8vh;
+    .navbar {
+        width: 100%;
+        height: 8vh;
 
-    padding: 0 3vw;
+        padding: 0 3vw;
 
-    background-color: var(--dark-1);
+        background-color: var(--dark-1);
 
-    display: flex;
-    flex-direction: row;
+        display: flex;
+        flex-direction: row;
 
-    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
-}
+        position: sticky;
+        top: 0;
+        left: 0;
 
-.navbrand {
-    min-width: 10%;
-    height: 100%;
+        box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
+    }
 
-    padding: 1%;
+    .navbrand {
+        min-width: 10%;
+        height: 100%;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        padding: 1%;
 
-    color: var(--light-1);
-}
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-.navlink {
-    min-width: 6%;
-    height: 100%;
+        color: var(--light-1);
+    }
 
-    padding: 1%;
+    .navlink {
+        min-width: 6%;
+        height: 100%;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        padding: 1%;
 
-    transition: 300ms;
-    cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-    color: var(--light-1);
-}
+        transition: 300ms;
+        cursor: pointer;
 
-.navlink:hover {
-    background-color: var(--light-2);
+        color: var(--light-1);
+    }
 
-    color: var(--dark-2);
-}
+    .navlink:hover {
+        background-color: var(--light-2);
 
-.navsearch {
-    flex: 1;
+        color: var(--dark-2);
+    }
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .navsearch {
+        flex: 1;
 
-.navsearch input{
-    height: 70%;
-    width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-    border-radius: 10px;
-    border: 0;
+    .navsearch input {
+        height: 70%;
+        width: 50%;
 
-    background-color: var(--dark-2);
+        border-radius: 10px;
+        border: 0;
 
-    text-align: center;
-    color: var(--light-1);
-}
+        background-color: var(--dark-2);
 
-.navdropdown {
-    min-width: 6%;
-    height: 100%;
+        text-align: center;
+        color: var(--light-1);
+    }
 
-    padding: 1%;
+    .navdropdown {
+        min-width: 6%;
+        height: 100%;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        padding: 1%;
 
-    transition: 300ms;
-    cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-    color: var(--light-1); 
-}
+        transition: 300ms;
+        cursor: pointer;
 
-.navdropdown:hover {
-    background-color: var(--light-2);
+        color: var(--light-1);
+    }
 
-    color: var(--dark-2);
-}
+    .navdropdown:hover {
+        background-color: var(--light-2);
 
-.navdropdown > ul {
-    top: 8vh;
-    left: 0;
-    position: relative;
-}
+        color: var(--dark-2);
+    }
 
-.navdropdown:hover ul {
-    display: initial;
-}
+    .navdropdown>ul {
+        top: 8vh;
+        left: 0;
+        position: relative;
+    }
 
+    .navdropdown:hover ul {
+        display: initial;
+    }
 </style>
 
 <nav class="navbar">
     <a href="/api/core/home/" class="navbrand">ShopLift</a>
-    <form method="POST" class="navsearch">
-        {% csrf_token %}
-        <input type="text" name="search" placeholder="Search" />
-    </form>
-    {% if user %}
-            {% if user.user_role_id == 1 %}
-                <a href="/api/connection/cart/" class="navlink">Cart</a>
-            {% endif %}
-        <a href="/api/core/profile/" class="navlink">Hello, {{ user.first_name }}</a>
-        <a href="/api/core/logout/" class="navlink">Logout</a>
+    {% if user.user_role_id == 2%}
+    <div style="flex: 1;"></div>
     {% else %}
-        <a href="/api/core/login/" class="navlink">Login</a>
-        <a href="/api/core/register/" class="navdropdown">
-            Register
-            <!-- <ul>
+    <form method="GET" class="navsearch" action="http://127.0.0.1:8001/api/connection/product/search/">
+        <input type="text" name="search" placeholder="Search" />
+        <input type="submit" hidden />
+    </form>
+    {% endif %}
+    {% if user %}
+    {% if user.user_role_id == 1 %}
+    <a href="/api/connection/order/all/" class="navlink">Orders</a>
+    <a href="/api/connection/cart/" class="navlink">Cart</a>
+    {% elif user.user_role_id == 2 %}
+    <a href="/api/connection/product/create/" class="navlink">Add a product</a>
+    {% endif %}
+    <a href="/api/core/profile/" class="navlink">Profile</a>
+    <a href="/api/core/logout/" class="navlink">Logout</a>
+    {% else %}
+    <a href="/api/core/login/" class="navlink">Login</a>
+    <a href="/api/core/register/" class="navdropdown">
+        Register
+        <!-- <ul>
                 <li class="navlink">As Buyer</li>
                 <li class="navlink">As Seller</li>
             </ul> -->
-        </a>
+    </a>
     {% endif %}
 </nav>

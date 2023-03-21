@@ -3,28 +3,65 @@
 
 <title>Product</title>
 
+{% load static %}
+<link rel="stylesheet" href="{% static 'product_page.css' %}">
+
 {% endblock %}
 
 {% block content %}
 
-<!-- {% for x in product.keys %}
-    <p>{{ product.x }}</p>
-{% endfor %} -->
-{{ product }}
-{{ inventory_item }}
+{% include "components/navbar.html" %}
 
-{% if can_edit %}
-    <p><a href="/api/connection/product/change/{{ product.id }}/">Edit</a></p>
-{% else %}
-    <p>
-        <form method="POST" action="http://127.0.0.1:5000/add/" enctype="multipart/form-data">
-            <input type="number" name="quantity" placeholder="Quantity" />
+<div class="container">
+    <div class="imgframe" style="background-image: url('/media/images/products/{{ product.id }}.jpg');">
+
+    </div>
+    <div class="details">
+        <div class="title">
+            <h1>
+                {{ product.product_name }}
+            </h1>
+            <span>{{ total_rating }}</span>
+        </div>
+        <ul class="taglist">
+            {% for tag in product_tags %}
+            <li class="tag">{{ tag }}</li>
+            {% endfor %}
+        </ul>
+        <p>{{ product.product_description }}</p>
+        <h5>Only {{ product.product_count }} in stock</h5>
+        {% if product.discount > 0 %}
+        <h4>$ {{ product.price }}</h4>
+        <h3>$ {{ effective_price }}</h3>
+        {% else %}
+        <h3>$ {{ product.price }}</h3>
+        {% endif %}
+        {% if can_edit %}
+        <a href="/api/connection/product/change/{{ product.id }}/">Edit</a>
+        <a href="/api/connection/product/delete/{{ product.id }}/"
+            style="border: 1px solid #ef0e0e; background-color: #f44949;">Delete</a>
+        {% else %}
+        <form method="POST" action="http://127.0.0.1:8001/api/connection/cart/add/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="number" name="quantity" value="1" />
             <input type="hidden" name="user_id" value="{{ user_id }}" />
             <input type="hidden" name="product_id" value="{{ product.id }}" />
             <input type="submit" name="btn-submit" value="Add to cart" />
         </form>
-    </p>
-{% endif %}
+        <div class="reviews">
+            <h2>Reviews</h2>
 
+            {% for review in reviews %}
+            <div class="review">
+                <span>{{ review.content }}</span>
+                <span class="rating">{{ review.rating }}</span>
+            </div>
+            <hr />
+
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

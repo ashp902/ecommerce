@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <title>ShopLift | Your addresses</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'address.css' %}">
+<title>ShopLift | Your addresses</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'address.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -13,18 +13,16 @@
 <div class="container">
 
     <h1>Your addresses</h1>
-    <div style="display: flex; flex-direction: row; width: 78%; justify-content: flex-end;"><a style="color: var(--dark-1); text-decoration: underline;" href="/api/core/address/create/">Create new</a></div>
+    <div style="display: flex; flex-direction: row; width: 68%; justify-content: flex-end;"><a
+            style="color: var(--dark-1); text-decoration: underline;" href="/api/core/address/create/">Create new</a>
+    </div>
 
     {% for address in addresses %}
-        <a class="addresscard" href="/api/core/address/edit/{{ address.id }}">
-            <p>{{ address.door_no }}</p>
-            <p>{{ address.street }}</p>
-            <p>{{ address.area }}</p>
-            <p>{{ address.city }}</p>
-            <p>{{ address.state }}</p>
-            <p>{{ address.country }}</p>
-            <p>{{ address.pincode }}</p>
-        </a>
+    <a class="addresscard" href="/api/core/address/edit/{{ address.id }}">
+        <h3>{{ address.address_name }}</h3>
+        <p>{{ address.door_no }}, {{ address.street }}, {{ address.area }}</p>
+        <p>{{ address.city }}, {{ address.state }}, {{ address.country }} - {{ address.pincode }}</p>
+    </a>
     {% endfor %}
 
 </div>

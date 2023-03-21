@@ -9,7 +9,12 @@
     --dark-2: #2f2f2f;
 }
 
-input:focus, select:focus, textarea:focus, button:focus {outline: none;}
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
 
 * {
     margin: 0;
@@ -32,7 +37,7 @@ body {
     padding: 4% 5%;
 
     display: flex;
-    
+
     justify-content: center;
     align-items: center;
 }
@@ -58,7 +63,7 @@ body {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;
 }
 
-.formbox > table {
+.formbox>table {
     margin: 0;
 }
 
@@ -66,7 +71,9 @@ td {
     padding: 5px;
 }
 
-input, select, button {
+input,
+select,
+button {
 
     height: 40px;
     width: 100%;
@@ -80,7 +87,9 @@ input, select, button {
     color: var(--light-1);
 }
 
-select > option {color: var(--light-1);}
+select>option {
+    color: var(--light-1);
+}
 
 button[name='buyer'] {
 
@@ -100,4 +109,3 @@ button[name='seller'] {
 
     cursor: pointer;
 }
-

@@ -1,24 +1,52 @@
 {% extends "base.html" %}
 
 {% block head %}
-
-<title>Create Address</title>
-
+<title>ShopLift | Edit address</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'address_form.css' %}">
 {% endblock %}
 
 {% block content %}
 
-<h1>Create a new Address</h1>
+{% include "components/navbar.html" %}
 
-<form method="POST">
+<div class="container">
 
-    {% csrf_token %}
+    <div class="formbox">
+        <h1 style="width: 90%; height: 10%;text-align: left;">Edit address</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <td colspan="2">{{ form.address_name }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.door_no }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.street }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">{{ form.area }}</td>
+                </tr>
+                <tr>
+                    <td>{{ form.city }}</td>
+                    <td>{{ form.state }}</td>
+                </tr>
+                <tr>
+                    <td>{{ form.country }}</td>
+                    <td>{{ form.pincode }}</td>
+                </tr>
+                <tr>
+                    <td><input type="submit" value="Save changes" /></td>
+                    <td><a style="border: 1px solid #ef0e0e; background-color: #f44949;"
+                            href="/api/core/address/delete/{{ address_id }}/">Delete address</a></td>
+                </tr>
+            </table>
+        </form>
+    </div>
 
-    <table>
-        {{ form.as_table }}
-    </table>
+</div>
 
-    <input type="submit" value="Save changes" />
-</form>
 
 {% endblock %}

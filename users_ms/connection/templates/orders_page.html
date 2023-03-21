@@ -1,20 +1,69 @@
 {% extends "base.html" %}
-
 {% block head %}
 
-<title>Your orders</title>
+<title>ShopLift | Order</title>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'orders_page.css' %}">
 
 {% endblock %}
 
 {% block content %}
 
-{% for order in orders%}
-    <p>
-        {{ order }}
-        {% if order.delivery_status != 'Cancelled' %}
-            <a href="/api/connection/order/{{ order.id }}/">View</a>
-        {% endif %}
-    </p>
-{% endfor %}
+{% include "components/navbar.html" %}
+
+<div class="container">
+    <h1>Your orders</h1>
+    {% for order in orders %}
+    <div class="ordercard">
+        {% for order_item in order.order_items %}
+        <div class="orderitem">
+            <div class="itemimg"
+                style="background-image: url('/media/images/products/{{ order_item.product_id }}.jpg');">
+
+            </div>
+            <div class="details">
+                <div>
+                    <h2>{{ order_item.product.product_name }}</h2>
+                    <p>{{ order_item.product.product_description }}</p>
+                </div>
+                <form method="POST"
+                    action="http://127.0.0.1:8001/api/connection/review/add/{{ order_item.product.id }}/">
+                    {% csrf_token %}
+                    <textarea name="content" placeholder="Write a review"></textarea>
+                    <select name="rating">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                    <input type="submit" value="Submit review" />
+                </form>
+            </div>
+            <div class="price">
+                {% if order_item.discount > 0 %}
+                <span style="text-decoration: line-through; font-size: 1em">$ {{ order_item.price }}</span>
+                <span style="font-size: 1.2em;">$ {{ order_item.effective_price }}</span>
+                {% else %}
+                <span style="font-size: 1.2em;">$ {{ order_item.product.price }}</span>
+                {% endif %}
+                <span style="font-size: 1em;">Quantity : {{ order_item.quantity }}</span>
+                <span style="font-size: 1.4em;">$ {{ order_item.product_total }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="status">
+            <span>Delivery status :</span>
+            <span>{{ order.delivery_status }}</span>
+        </div>
+        <div class="subtotal">
+            <span>Total :</span>
+            <span>$ {{ order.total_amount }}</span>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
 
 {% endblock %}

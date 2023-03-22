@@ -31,12 +31,12 @@
 
             </div>
             <div class="cardtitle">
-                <span style="width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{
-                    product.product_name }}</span>
+                <span style="width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                    {{ product.product_name }}</span>
                 {% if product.discount > 0 %}
                 <span style="width: 50%; text-align: end;">
-                    $ <span style="text-decoration: line-through; margin: 0 5px;">{{ product.price }}</span><span>{{
-                        product.effective_price }}</span>
+                    $ <span style="text-decoration: line-through; margin: 0 5px;">{{ product.price }}</span>
+                    <span>{{ product.effective_price }}</span>
                 </span>
                 {% else %}
                 <span>$ {{ product.price }}</span>

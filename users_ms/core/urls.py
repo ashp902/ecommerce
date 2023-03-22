@@ -1,6 +1,9 @@
 from django.urls import path
 from .views import (
-    LoginRegisterViewSet,
+    create_buyer,
+    create_seller,
+    registration_page,
+    Login,
     home,
     profile,
     address,
@@ -17,28 +20,20 @@ urlpatterns = [
     # Login page for all users
     path(
         "login/",
-        LoginRegisterViewSet.as_view({"post": "login_user", "get": "login_page"}),
+        Login.as_view(),
         name="login",
     ),
-    path("register/", LoginRegisterViewSet.as_view({"get": "registration_page"})),
+    path("register/", registration_page),
     # Register page for buyers
     path(
         "register/buyer/",
-        LoginRegisterViewSet.as_view(
-            {
-                "post": "create_buyer",
-            }
-        ),
+        create_buyer,
         name="register_buyer",
     ),
     # Register page for sellers
     path(
         "register/seller/",
-        LoginRegisterViewSet.as_view(
-            {
-                "post": "create_seller",
-            }
-        ),
+        create_seller,
         name="register_seller",
     ),
     # Only for debugging

@@ -21,7 +21,9 @@
             <h1>
                 {{ product.product_name }}
             </h1>
+            {% if total_rating %}
             <span>{{ total_rating }}</span>
+            {% endif %}
         </div>
         <ul class="taglist">
             {% for tag in product_tags %}
@@ -48,6 +50,7 @@
             <input type="hidden" name="product_id" value="{{ product.id }}" />
             <input type="submit" name="btn-submit" value="Add to cart" />
         </form>
+        {% if reviews %}
         <div class="reviews">
             <h2>Reviews</h2>
 
@@ -60,6 +63,7 @@
 
             {% endfor %}
         </div>
+        {% endif %}
         {% endif %}
     </div>
 </div>

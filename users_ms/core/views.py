@@ -5,15 +5,20 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
 from rest_framework import viewsets, status
+from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 import requests
 import json
 import os
 
 from .models import User, Address
-from .serializers import UserSerializer
+from .serializers import UserSerializer, RegisterUserSeraializer
 from .forms import RegisterUserForm, LoginUserForm, EditUserForm, AddressForm
 
 
@@ -30,83 +35,122 @@ from .forms import RegisterUserForm, LoginUserForm, EditUserForm, AddressForm
 
 
 # Views for login and register pages
-class LoginRegisterViewSet(viewsets.ViewSet):
-    # GET, /api/core/all/
-    def all_users(self, request):  # Displays data of all users
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
+# class LoginRegisterViewSet(viewsets.ViewSet):
+# GET, /api/core/all/
+# def all_users(self, request):  # Displays data of all users
+#     users = User.objects.all()
+#     serializer = UserSerializer(users, many=True)
 
-        return Response(serializer.data)
+#     return Response(serializer.data)
 
-    # POST, /api/core/register/buyer/
-    def create_buyer(self, request):  # Registers a new buyer
-        form = RegisterUserForm(request.POST)
 
-        # if all fields are valid save and login buyer
-        if form.is_valid():
-            form.save_buyer()
+# POST, /api/core/register/buyer/
+@swagger_auto_schema(
+    operation_description="Creates a user with buyer role",
+    method="post",
+    # request_body=openapi.Schema(
+    #     type=openapi.TYPE_OBJECT,
+    #     properties={
+    #         "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+    #     },
+    # ),
+    # manual_parameters=[
+    #     openapi.Parameter("first_name", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    # ],
+    request_body=RegisterUserSeraializer,
+)
+@api_view(["POST"])
+def create_buyer(request):  # Registers a new buyer
+    # if request.method == "GET":
+    #     print(request.body)
+    #     return HttpResponse(request.build_absolute_uri())
 
-            email = form.cleaned_data.get("email")
-            raw_password = form.cleaned_data.get("password1")
+    form = RegisterUserForm(request.POST)
 
-            user = authenticate(email=email, password=raw_password)
+    # if all fields are valid save and login buyer
+    if form.is_valid():
+        form.save_buyer()
 
-            # if authentication is successful, redirect to home page
-            if user is not None:
-                login(request, user)
-                return redirect("home")
+        email = form.cleaned_data.get("email")
+        raw_password = form.cleaned_data.get("password1")
 
-            # if authentication fails, redirect to login page
-            else:
-                return redirect("login")
+        user = authenticate(email=email, password=raw_password)
 
-        # if any field is not valid, redirect to register page
-        else:
-            return redirect("register_buyer")
-
-    # POST, /api/core/register/seller/
-    def create_seller(self, request):  # Registers a new seller
-        form = RegisterUserForm(request.POST)
-
-        # if all fields are valid save and login seller
-        if form.is_valid():
-            form.save_seller()
-
-            email = form.cleaned_data.get("email")
-            raw_password = form.cleaned_data.get("password1")
-
-            user = authenticate(email=email, password=raw_password)
-
-            # if authentication is successful, redirect to home page
-            if user is not None:
-                login(request, user)
-                return redirect("home")
-
-            # if authentication fails, redirect to login page
-            else:
-                return redirect("login")
-
-        # if any field is not valid, redirect to register page
-        else:
-            return redirect("register_seller")
-
-    # GET, /api/core/register/
-    def registration_page(self, request):
-        # if any user is already logged in, redirect to home page
-        if request.user.id != None:
+        # if authentication is successful, redirect to home page
+        if user is not None:
+            login(request, user)
             return redirect("home")
 
-        form = RegisterUserForm()
+        # if authentication fails, redirect to login page
+        else:
+            return redirect("login")
 
-        context = {
-            "form": form,
-            "user": request.user.id != None,
-        }
+    # if any field is not valid, redirect to register page
+    else:
+        return redirect("register_buyer")
 
-        return render(request, "register.html", context)
 
+# POST, /api/core/register/seller/
+@swagger_auto_schema(
+    operation_description="Create a user with seller role",
+    method="post",
+)
+@api_view(["POST"])
+def create_seller(request):  # Registers a new seller
+    form = RegisterUserForm(request.POST)
+
+    # if all fields are valid save and login seller
+    if form.is_valid():
+        form.save_seller()
+
+        email = form.cleaned_data.get("email")
+        raw_password = form.cleaned_data.get("password1")
+
+        user = authenticate(email=email, password=raw_password)
+
+        # if authentication is successful, redirect to home page
+        if user is not None:
+            login(request, user)
+            return redirect("home")
+
+        # if authentication fails, redirect to login page
+        else:
+            return redirect("login")
+
+    # if any field is not valid, redirect to register page
+    else:
+        return redirect("register_seller")
+
+
+# GET, /api/core/register/
+@swagger_auto_schema(
+    operation_description="Renders registration page",
+    method="get",
+)
+@api_view(["GET"])
+def registration_page(request):
+    # if any user is already logged in, redirect to home page
+    if request.user.id != None:
+        return redirect("home")
+
+    form = RegisterUserForm()
+
+    context = {
+        "form": form,
+        "user": request.user.id != None,
+    }
+
+    return render(request, "register.html", context)
+
+
+class Login(APIView):
     # POST, /api/core/login/
-    def login_user(self, request):
+    # @swagger_auto_schema(
+    #     operation_description="Logs in a user",
+    #     method="post",
+    # )
+    # @api_view(["POST"])
+    def post(self, request):
         form = LoginUserForm(request.POST)
 
         email = form["email"].value()
@@ -124,7 +168,12 @@ class LoginRegisterViewSet(viewsets.ViewSet):
             return HttpResponse("not valid")
 
     # GET, /api/core/login/
-    def login_page(self, request):
+    # @swagger_auto_schema(
+    #     operation_description="Renders login page",
+    #     method="get",
+    # )
+    # @api_view(["GET"])
+    def get(self, request):
         # if any user is already logged in, redirect to home page
         if request.user.id != None:
             return redirect("home")
@@ -140,6 +189,10 @@ class LoginRegisterViewSet(viewsets.ViewSet):
 
 
 # Home page view, /api/core/home/
+@swagger_auto_schema(
+    operation_description="Renders home page",
+    method="get",
+)
 @api_view(["GET"])
 def home(request):
     # if user is logged in
@@ -225,6 +278,14 @@ def home(request):
 
 
 # Profile page, /api/core/profile/
+@swagger_auto_schema(
+    operation_description="Renders profile page",
+    method="get",
+)
+@swagger_auto_schema(
+    operation_description="Updates user details",
+    method="post",
+)
 @login_required
 @api_view(["GET", "POST"])
 def profile(request):
@@ -298,6 +359,10 @@ def profile(request):
 
 
 # Address page, only available for buyers, /api/core/address/
+@swagger_auto_schema(
+    operation_description="Renders addresses page",
+    method="get",
+)
 @login_required
 @api_view(["GET"])
 def address(request):
@@ -321,6 +386,14 @@ def address(request):
 
 
 # Create new address page, /api/core/address/create/
+@swagger_auto_schema(
+    operation_description="Renders create address form",
+    method="get",
+)
+@swagger_auto_schema(
+    operation_description="Creates a new address",
+    method="post",
+)
 @login_required
 @api_view(["GET", "POST"])
 def create_address(request):
@@ -358,6 +431,14 @@ def create_address(request):
 
 
 # Edit address page, /api/core/address/edit/<int:id>/
+@swagger_auto_schema(
+    operation_description="Renders edit address page",
+    method="get",
+)
+@swagger_auto_schema(
+    operation_description="Updates the address details",
+    method="post",
+)
 @login_required
 @api_view(["GET", "POST"])
 def edit_address(request, id):
@@ -405,6 +486,10 @@ def edit_address(request, id):
 
 
 # Delete address, /api/core/address/delete/<int:id>/
+@swagger_auto_schema(
+    operation_description="Delete an address",
+    method="get",
+)
 @login_required
 @api_view(["GET"])
 def delete_address(request, id):
@@ -414,6 +499,10 @@ def delete_address(request, id):
 
 
 # Logout, /api/core/logout/
+@swagger_auto_schema(
+    operation_description="Logs out an user",
+    method="get",
+)
 @login_required
 @api_view(["GET"])
 def logout_user(request):
@@ -422,6 +511,10 @@ def logout_user(request):
 
 
 # 404 page, /api/core/404/
+@swagger_auto_schema(
+    operation_description="404 page",
+    method="get",
+)
 @api_view(["GET"])
 def no_page(request):
     if request.user.id != None:
@@ -432,4 +525,4 @@ def no_page(request):
         context = {
             "user": False,
         }
-    return render(request, "404.html", context)
+    return render(request, "404.html", context, status=status.HTTP_404_NOT_FOUND)

@@ -4,6 +4,13 @@
 <title>ShopLift | Edit product</title>
 {% load static %}
 <link rel="stylesheet" href="{% static 'edit_product_page.css' %}">
+
+<style>
+    .pic {
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -14,13 +21,14 @@
 
     <div class="formbox">
         <h1 style="width: 90%; height: 10%;text-align: left; margin: 2% 0% 4% 0;">Edit product</h1>
-        <div style="display: flex; flex-direction: row; width: 90%; height: 80%;">
-            <div style="width: 50%; height: 100%; display: flex; justify-content: flex-start; align-items: center;">
-                <div class="pic"></div>
-            </div>
+        <div style="display: flex; flex-direction: row; width: 90%; height: 80%; justify-content: center;">
+            <!-- <div style="width: 50%; height: 100%; display: flex; justify-content: flex-start; align-items: center;">
+                <div class="pic" style="background-image: url('/media/images/products/{{ product_id }}.jpg');">
+                </div>
+            </div> -->
             <div
                 style="width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <table>
                         <tr>
@@ -40,6 +48,9 @@
                         </tr>
                         <tr>
                             <td>{{ form.discount }}</td>
+                        </tr>
+                        <tr>
+                            <td><input type="file" name="image" /></td>
                         </tr>
                         <tr>
                             <td><input type="submit" value="Save changes" /></td>

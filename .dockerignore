@@ -1,0 +1,10 @@
+
+.idea/
+
+env/
+
+README.md
+readme/
+
+.git/
+.gitignore

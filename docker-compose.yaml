@@ -1,0 +1,92 @@
+version: '3'
+
+services:
+  users_ms:
+    build: /users_ms
+    command: python manage.py runserver 127.0.0.1:8001
+    ports:
+      - 8001:8001
+    depends_on:
+      - users_db
+
+  products_ms:
+    build: /products_ms
+    command: python manage.py runserver 127.0.0.1:8002
+    ports:
+      - 8002:8002
+    depends_on:
+      - products_db
+
+  cart_ms:
+    build: /cart_ms
+    command: flask run --host=127.0.0.1 --port=5000
+    ports:
+      - 5000:5000
+    depends_on:
+      - cart_db
+
+  order_ms:
+    build: /order_ms
+    command: python manage.py runserver 127.0.0.1:8003
+    ports:
+      - 8003:8003
+    depends_on:
+      - orders_db
+
+  review_ms:
+    build: /review_ms
+    command: flask run --host=127.0.0.1 --port=5001
+    ports:
+      - 5001:5001
+    depends_on:
+      - review_db
+
+  users_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    ports:
+      - 5440:5432
+
+  products_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    ports:
+      - 5441:5432
+
+  cart_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    ports:
+      - 5442:5432
+
+  orders_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    ports:
+      - 5443:5432
+
+  review_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+    ports:
+      - 5444:5432

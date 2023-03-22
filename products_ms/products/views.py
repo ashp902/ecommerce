@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
 from datetime import datetime
 import json
 
@@ -17,6 +20,10 @@ from inventory.models import InventoryItem
 
 
 # POST, /api/product/create/
+@swagger_auto_schema(
+    operation_description="Creates a new product",
+    method="post",
+)
 @csrf_exempt
 @api_view(["POST"])
 def create_product(request):
@@ -42,6 +49,10 @@ def create_product(request):
 
 
 # GET, /api/product/seller/<int:id>/
+@swagger_auto_schema(
+    operation_description="Fetches all products by a particular user",
+    method="get",
+)
 @api_view(["GET"])
 def get_all_products_with_user_id(request, id):
     products = Product.objects.filter(seller_id=id)
@@ -57,6 +68,10 @@ def get_all_products_with_user_id(request, id):
 
 
 # GET, /api/product/all/
+@swagger_auto_schema(
+    operation_description="Fetches all products",
+    method="get",
+)
 @api_view(["GET"])
 def get_all_products(request):
     products = Product.objects.all()
@@ -72,6 +87,10 @@ def get_all_products(request):
 
 
 # GET, /api/product/<int:id>/
+@swagger_auto_schema(
+    operation_description="Renders product page",
+    method="get",
+)
 @api_view(["GET"])
 def product_page(request, id):
     product = Product.objects.get(id=id)
@@ -94,6 +113,14 @@ def product_page(request, id):
 
 
 # [POST, DELETE], /api/product/change/<int:id>/
+@swagger_auto_schema(
+    operation_description="Edit a product",
+    method="post",
+)
+@swagger_auto_schema(
+    operation_description="Delete a product",
+    method="delete",
+)
 @csrf_exempt
 @api_view(["POST", "DELETE"])
 def edit_product(request, id):
@@ -129,6 +156,10 @@ def edit_product(request, id):
         return HttpResponse("deleted")
 
 
+@swagger_auto_schema(
+    operation_description="Checks if the items in order are in stock",
+    method="post",
+)
 @csrf_exempt
 @api_view(["POST"])
 def place_order(request):
@@ -147,6 +178,10 @@ def place_order(request):
     return HttpResponse("ok", status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(
+    operation_description="Fetches products that match the search query",
+    method="get",
+)
 @api_view(["GET"])
 def search(request):
     queries = list(request.GET.get("search", "").split())

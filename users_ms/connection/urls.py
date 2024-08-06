@@ -22,7 +22,7 @@ from .views import (
 
 from .views import place_order, view_all_orders
 
-from .views import add_review
+from .views import add_review, delete_review
 
 PRODUCT_PATHS = [
     # Create new product page (only sellers)
@@ -123,6 +123,10 @@ REVIEW_PATHS = [
     path(
         "review/add/<int:product_id>/",
         add_review,
+    ),
+    path(
+        "review/delete/<int:product_id>/",
+        delete_review,
     ),
 ]
 

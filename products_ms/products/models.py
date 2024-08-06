@@ -8,6 +8,9 @@ class Product(models.Model):
     product_description = models.TextField()
     product_tags = ArrayField(models.CharField(max_length=255))
     seller_id = models.BigIntegerField()
+    status = models.CharField(
+        max_length=1, choices=[("A", "Active"), ("R", "Removed")], default="A"
+    )
 
     def to_dict(self):
         return {

@@ -13,6 +13,7 @@
 {% include "components/navbar.html" %}
 
 <div class="container">
+    {% include "components/snackbars.html" %}
     <div class="heading">
         <h1>Your cart</h1>
         <a href="/api/connection/order/place/">Place order</a>
@@ -21,8 +22,9 @@
     {% if cart_items %}
     {% for cart_item in cart_items %}
     <div class="cartcard">
-        <div class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');">
-        </div>
+        <a class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');"
+            href="/api/connection/product/{{ cart_item.product_id }}/">
+        </a>
         <div class="details">
             <h2>{{ cart_item.product.product_name }}</h2>
             <p>{{ cart_item.product.product_description }}</p>
@@ -68,8 +70,9 @@
     {% if history %}
     {% for cart_item in history %}
     <div class="cartcard">
-        <div class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');">
-        </div>
+        <a class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');"
+            href="/api/connection/product/{{ cart_item.product_id }}/">
+        </a>
         <div class="details">
             <h2>{{ cart_item.product.product_name }}</h2>
             <p>{{ cart_item.product.product_description }}</p>

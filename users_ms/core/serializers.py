@@ -16,12 +16,12 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class RegisterUserSeraializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    username = serializers.CharField()
-    password1 = serializers.CharField()
-    password2 = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    date_of_birth = serializers.DateField()
-    gender = serializers.CharField()
+# class RegisterUserSeraializer(serializers.Serializer):
+#     email = serializers.EmailField()
+#     username = serializers.CharField()
+#     password1 = serializers.CharField()
+#     password2 = serializers.CharField()
+#     first_name = serializers.CharField()
+#     last_name = serializers.CharField()
+#     date_of_birth = serializers.DateField()
+#     gender = serializers.CharField()

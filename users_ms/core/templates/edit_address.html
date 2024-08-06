@@ -11,31 +11,31 @@
 {% include "components/navbar.html" %}
 
 <div class="container">
-
+    {% include "components/snackbars.html" %}
     <div class="formbox">
         <h1 style="width: 90%; height: 10%;text-align: left;">Edit address</h1>
         <form method="POST">
             {% csrf_token %}
             <table>
                 <tr>
-                    <td colspan="2">{{ form.address_name }}</td>
+                    <td colspan="2" title="Address Name">{{ form.address_name }}</td>
                 </tr>
                 <tr>
-                    <td colspan="2">{{ form.door_no }}</td>
+                    <td colspan="2" title="Door number">{{ form.door_no }}</td>
                 </tr>
                 <tr>
-                    <td colspan="2">{{ form.street }}</td>
+                    <td colspan="2" title="Street">{{ form.street }}</td>
                 </tr>
                 <tr>
-                    <td colspan="2">{{ form.area }}</td>
+                    <td colspan="2" title="Area">{{ form.area }}</td>
                 </tr>
                 <tr>
-                    <td>{{ form.city }}</td>
-                    <td>{{ form.state }}</td>
+                    <td title="City">{{ form.city }}</td>
+                    <td title="State">{{ form.state }}</td>
                 </tr>
                 <tr>
-                    <td>{{ form.country }}</td>
-                    <td>{{ form.pincode }}</td>
+                    <td title="Country">{{ form.country }}</td>
+                    <td title="Pincode">{{ form.pincode }}</td>
                 </tr>
                 <tr>
                     <td><input type="submit" value="Save changes" /></td>

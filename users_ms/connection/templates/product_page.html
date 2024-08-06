@@ -43,13 +43,16 @@
         <a href="/api/connection/product/delete/{{ product.id }}/"
             style="border: 1px solid #ef0e0e; background-color: #f44949;">Delete</a>
         {% else %}
+        {% if user %}
         <form method="POST" action="http://127.0.0.1:8001/api/connection/cart/add/" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="number" name="quantity" value="1" />
-            <input type="hidden" name="user_id" value="{{ user_id }}" />
+            <input type="hidden" name="user_id" value="{{ user.id }}" />
             <input type="hidden" name="product_id" value="{{ product.id }}" />
             <input type="submit" name="btn-submit" value="Add to cart" />
         </form>
+        {% endif %}
+        {% endif %}
         {% if reviews %}
         <div class="reviews">
             <h2>Reviews</h2>
@@ -64,6 +67,14 @@
             {% endfor %}
         </div>
         {% endif %}
+        {% if related %}
+        <h2>Related products</h2>
+        {% for r in related %}
+        <a class="related" href="/api/connection/product/{{ r.id }}">
+            <span>{{ r.product_name }}</span>
+            <span>$ {{ r.effective_price }}</span>
+        </a>
+        {% endfor %}
         {% endif %}
     </div>
 </div>

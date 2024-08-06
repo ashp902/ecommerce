@@ -1,0 +1,64 @@
+<style>
+    @keyframes fadein {
+        0% {
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+
+    .snackbars {
+        width: 25%;
+        height: 100%;
+
+        z-index: 100;
+
+        padding: 2vh 1vw;
+
+        position: fixed;
+        right: 0;
+        top: 8vh;
+
+        pointer-events: none;
+    }
+
+    .snackbar {
+        opacity: 0;
+
+        width: 100%;
+        height: fit-content;
+
+        padding: 2vh 1vw;
+        margin: 1vh 0;
+
+        border: 2px solid var(--dark-1);
+        border-radius: 10px;
+
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+
+        background-color: var(--light-2);
+
+        color: var(--dark-2);
+        text-align: center;
+
+        animation: fadein 5s linear forwards;
+    }
+</style>
+
+<div class="snackbars">
+    {% for error in errors %}
+    <div class="snackbar">
+        {{ error }}
+    </div>
+    {% endfor %}
+</div>

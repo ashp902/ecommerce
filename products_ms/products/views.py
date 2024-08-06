@@ -54,8 +54,8 @@ def create_product(request):
     method="get",
 )
 @api_view(["GET"])
-def get_all_products_with_user_id(request, id):
-    products = Product.objects.filter(seller_id=id)
+def get_all_products_with_user_id(request, id):  # Optimize
+    products = Product.objects.filter(seller_id=id, status="A")
     data = [
         {
             **InventoryItem.objects.filter(product_id=product.id)[0].to_dict(),
@@ -74,7 +74,7 @@ def get_all_products_with_user_id(request, id):
 )
 @api_view(["GET"])
 def get_all_products(request):
-    products = Product.objects.all()
+    products = Product.objects.filter(status="A")
     data = [
         {
             **InventoryItem.objects.filter(product_id=product.id)[0].to_dict(),
@@ -82,7 +82,7 @@ def get_all_products(request):
         }
         for product in products
     ]
-
+    print(data)
     return Response(json.dumps({"data": data}), status=status.HTTP_200_OK)
 
 
@@ -93,23 +93,48 @@ def get_all_products(request):
 )
 @api_view(["GET"])
 def product_page(request, id):
-    product = Product.objects.get(id=id)
-    inventory_item = InventoryItem.objects.only("count", "price", "discount").filter(
-        product_id=id
-    )[0]
+    try:
+        product = Product.objects.get(id=id)
+        if product.status == "A":
+            inventory_item = InventoryItem.objects.only(
+                "count", "price", "discount"
+            ).filter(product_id=id)[0]
 
-    data = {
-        "id": product.id,
-        "product_name": product.product_name,
-        "product_description": product.product_description,
-        "product_tags": product.product_tags,
-        "seller_id": product.seller_id,
-        "product_count": inventory_item.count,
-        "price": inventory_item.price,
-        "discount": inventory_item.discount,
-    }
-
-    return Response(json.dumps(data), status=status.HTTP_200_OK)
+            data = {
+                "id": product.id,
+                "product_name": product.product_name,
+                "product_description": product.product_description,
+                "product_tags": product.product_tags,
+                "seller_id": product.seller_id,
+                "product_count": inventory_item.count,
+                "price": inventory_item.price,
+                "discount": inventory_item.discount,
+            }
+            return Response(json.dumps(data), status=status.HTTP_200_OK)
+        else:
+            data = {
+                "id": 0,
+                "product_name": "Product deleted",
+                "product_description": "",
+                "product_tags": "",
+                "seller_id": "",
+                "product_count": "",
+                "price": "",
+                "discount": "",
+            }
+            return Response(json.dumps(data), status=status.HTTP_200_OK)
+    except:
+        data = {
+            "id": 0,
+            "product_name": "Product deleted",
+            "product_description": "",
+            "product_tags": "",
+            "seller_id": "",
+            "product_count": "",
+            "price": "",
+            "discount": "",
+        }
+        return Response(json.dumps(data), status=status.HTTP_200_OK)
 
 
 # [POST, DELETE], /api/product/change/<int:id>/
@@ -148,10 +173,11 @@ def edit_product(request, id):
     # DELETE method deletes the product
     elif request.method == "DELETE":
         product = Product.objects.get(id=id)
-        inventory_item = InventoryItem.objects.filter(product_id=id)[0]
+        # inventory_item = InventoryItem.objects.filter(product_id=id)[0]
 
-        product.delete()
-        inventory_item.delete()
+        product.status = "R"
+        # inventory_item.delete()
+        product.save()
 
         return HttpResponse("deleted")
 

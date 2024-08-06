@@ -18,25 +18,33 @@ from .forms import ProductForm, OrderForm
 from core.models import Address
 
 
-# URL on which the product microservice runs on
-PRODUCT_MS_URL = "http://127.0.0.1:8002/api/product/"
-CART_MS_URL = "http://127.0.0.1:5000/"
-ORDER_MS_URL = "http://127.0.0.1:8003/api/order/"
-REVIEW_MS_URL = "http://127.0.0.1:5001/"
+# PRODUCT_MS_URL = "http://127.0.0.1:8002/api/product/"
+# CART_MS_URL = "http://127.0.0.1:5000/"
+# ORDER_MS_URL = "http://127.0.0.1:8003/api/order/"
+# REVIEW_MS_URL = "http://127.0.0.1:5001/"
+
+PRODUCT_MS_URL = "http://products-ms:8002/api/product/"
+CART_MS_URL = "http://cart-ms:5000/"
+ORDER_MS_URL = "http://order-ms:8003/api/order/"
+REVIEW_MS_URL = "http://review-ms:5001/"
 
 
-# Function to help writing urls faster
 def append_url(*args):
     return "".join([*args])
 
 
-# Convert response (from requests module) to response (from rest_framework)
 def process_response(response):
     return Response(
         data=response.content,
         status=response.status_code,
         content_type=response.headers["Content-Type"],
     )
+
+
+def get_user(request):
+    if request.user.id == None:
+        return False
+    return request.user
 
 
 @swagger_auto_schema(
@@ -46,23 +54,38 @@ def process_response(response):
 @swagger_auto_schema(
     operation_description="Create a new product",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "product_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "product_description": openapi.Schema(type=openapi.TYPE_STRING),
+            "product_tags": openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
+            ),
+            "product_count": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "price": openapi.Schema(type=openapi.TYPE_NUMBER),
+            "discount": openapi.Schema(type=openapi.TYPE_NUMBER),
+        },
+    ),
 )
 @api_view(["GET", "POST"])
-def create_product(self, request):
+def create_product(request):
     if request.method == "GET":
         if request.user.id != None and request.user.user_role_id == 2:
             form = ProductForm()
 
+            errors = request.session.pop("errors", None)
             context = {
                 "form": form,
+                "user": get_user(request),
+                "errors": errors,
             }
 
             return render(request, "product_form.html", context)
 
-        # If no user is logged in or if the user is not a seller, display error
+        request.session["errors"] = ["Access denied"]
         return redirect("/api/core/404/")
     elif request.method == "POST":
-        # if user is logged in, perform validations
         if request.user.id != None and request.user.user_role_id == 2:
             form = ProductForm(request.POST)
 
@@ -78,7 +101,6 @@ def create_product(self, request):
             except:
                 pass
 
-            # if form data is valid, make an api call to products service
             if form.is_valid():
                 post_data = dict(request.POST.lists())
 
@@ -96,14 +118,23 @@ def create_product(self, request):
                             for chunk in img.chunks():
                                 f.write(chunk)
 
+                    request.session["errors"] = ["Product created successfully."]
                     return redirect("http://127.0.0.1:8001/api/core/home/")
                 else:
+                    request.session["errors"] = [
+                        "Failed to create a product. Server error."
+                    ]
                     redirect("/api/core/404/")
-
             else:
+                errors = form.errors
+                error_messages = []
+                for error in errors.values():
+                    error_messages += error
+                request.session["errors"] = error_messages
                 return redirect("/api/connection/product/create/")
 
-        # if no user is logged in, display error
+        request.session["errors"] = ["Access denied."]
+
         return redirect("/api/core/404/")
 
 
@@ -112,9 +143,10 @@ def create_product(self, request):
     method="get",
 )
 @api_view(["GET"])
-def product_page(self, request, id):
+def product_page(request, id):
     response = requests.get(url=append_url(PRODUCT_MS_URL, str(id), "/"))
     if response.status_code == 200:
+        print(response.content)
         product = json.loads(json.loads(response.content))
         seller_id = product.pop("seller_id")
 
@@ -127,20 +159,44 @@ def product_page(self, request, id):
                 sum([review["rating"] for review in reviews]) / len(reviews)
             )
 
+        product_tags = list(product["product_tags"][0].split(","))
+        related = []
+
+        for tag in product_tags:
+            response = requests.get(
+                url=append_url(PRODUCT_MS_URL, "search/"), params={"search": tag}
+            )
+            if response.status_code == 200:
+                products = json.loads(json.loads(response.content))["data"]
+
+                for x in products:
+                    if x["id"] != id:
+                        related.append(
+                            {
+                                "effective_price": "{:.2f}".format(
+                                    x["price"] - x["discount"]
+                                ),
+                                **x,
+                            }
+                        )
+                        break
+
         context = {
             "product": product,
-            "product_tags": list(product["product_tags"][0].split(",")),
+            "product_tags": product_tags,
             "can_edit": can_edit,
-            "user_id": request.user.id,
+            "user": get_user(request),
             "effective_price": "{:.2f}".format(product["price"] - product["discount"])
             if product["discount"] > 0
             else product["price"],
             "reviews": reviews if len(reviews) > 0 else None,
             "total_rating": total_rating if len(reviews) > 0 else None,
+            "related": related,
         }
 
         return render(request, "product_page.html", context)
     else:
+        request.session["errors"] = ["Product not found."]
         return redirect("/api/core/404/")
 
 
@@ -151,9 +207,22 @@ def product_page(self, request, id):
 @swagger_auto_schema(
     operation_description="Edit a product",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "product_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "product_description": openapi.Schema(type=openapi.TYPE_STRING),
+            "product_tags": openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
+            ),
+            "product_count": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "price": openapi.Schema(type=openapi.TYPE_NUMBER),
+            "discount": openapi.Schema(type=openapi.TYPE_NUMBER),
+        },
+    ),
 )
 @api_view(["GET", "POST"])
-def edit_product(self, request, id):
+def edit_product(request, id):
     if request.method == "GET":
         if request.user.id != None and request.user.user_role_id == 2:
             response = requests.get(url=append_url(PRODUCT_MS_URL, str(id), "/"))
@@ -162,20 +231,21 @@ def edit_product(self, request, id):
             seller_id = product.pop("seller_id")
 
             form = ProductForm(product)
+            errors = request.session.pop("errors", None)
 
             context = {
                 "seller_id": seller_id,
                 "form": form,
                 "product_id": id,
+                "user": get_user(request),
+                "errors": errors,
             }
 
             return render(request, "edit_product_page.html", context)
 
-        # if no user is logged in, display error
         else:
             return redirect("/api/core/404/")
     elif request.method == "POST":
-        # if user is logged in, perform validation
         if request.user.id != None and request.user.user_role_id == 2:
             form = ProductForm(request.POST)
             img = False
@@ -190,7 +260,6 @@ def edit_product(self, request, id):
             except:
                 pass
 
-            # if form data is valid, make an api call to products service
             if form.is_valid():
                 data = dict(request.POST.lists())
 
@@ -201,6 +270,7 @@ def edit_product(self, request, id):
                 if response.status_code == 200:
                     context = {
                         "form": form,
+                        "user": get_user(request),
                     }
                     if img:
                         img_save_path = path + str(id) + img_extension
@@ -209,18 +279,23 @@ def edit_product(self, request, id):
                             for chunk in img.chunks():
                                 f.write(chunk)
 
-                    # re-render the form with updated data
-                    return render(request, "edit_product_page.html", context)
+                    request.session["errors"] = ["Updating product details successful."]
+                    return redirect("/api/core/home/")
 
-                # if updating failed, display error
                 else:
+                    request.session["errors"] = ["Updating product details failed."]
                     return redirect("/api/core/404/")
 
-            # if form data is not valid, display error
             else:
-                return render(request, "edit_product_page.html", context)
+                errors = form.errors
+                error_messages = []
+                for error in errors.values():
+                    error_messages += error
 
-        # if no user is logged in, display error
+                request.session["errors"] = error_messages
+                return redirect("/api/connection/product/change/" + str(id) + "/")
+
+        request.session["errors"] = ["Access denied."]
         return redirect("/api/core/404/")
 
 
@@ -229,9 +304,7 @@ def edit_product(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def get_all_products(self, request):
-    # make an api call to products service
-
+def get_all_products(request):
     response = requests.get(url=append_url(PRODUCT_MS_URL, "all/"))
     if response.status_code == 200:
         data = json.loads(response.content)
@@ -246,8 +319,7 @@ def get_all_products(self, request):
     method="get",
 )
 @api_view(["GET"])
-def get_all_products_with_user_id(self, request, id):
-    # make an api call to products service
+def get_all_products_with_user_id(request, id):
     response = requests.get(url=append_url(PRODUCT_MS_URL, "seller/", str(id)))
     if response.status_code == 200:
         data = json.loads(response.content)
@@ -262,7 +334,7 @@ def get_all_products_with_user_id(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def search_products(self, request):
+def search_products(request):
     response = requests.get(
         url=append_url(PRODUCT_MS_URL, "search/"),
         params={"search": request.GET.get("search", "")},
@@ -287,7 +359,7 @@ def search_products(self, request):
         context = {
             "user": request.user,
             "products": products,
-            "user": request.user if request.user.id != None else False,
+            "user": get_user(request),
         }
         return render(request, "search.html", context)
     else:
@@ -299,24 +371,34 @@ def search_products(self, request):
     method="get",
 )
 @api_view(["GET"])
-def delete_product(self, request, id):
+def delete_product(request, id):
     if request.user.id != None and request.user.user_role_id == 2:
-        response = requests.delete(url=append_url(PRODUCT_MS_URL, "change/", str(id)))
-        response = requests.delete(
-            url=append_url(CART_MS_URL, "product/", str(id), "/")
-        )
+        requests.delete(url=append_url(PRODUCT_MS_URL, "change/", str(id)))
+        requests.delete(url=append_url(CART_MS_URL, "product/", str(id), "/"))
+        requests.delete(url=append_url(REVIEW_MS_URL, "product/", str(id), "/"))
+        os.remove("media/images/products/" + str(id) + ".jpg")
 
+        request.session["errors"] = ["Product deleted."]
         return redirect("/api/core/home/")
     else:
-        return redirect("/api/connection/product/" + str(id) + "/")
+        request.session["errors"] = ["Access denied."]
+        return redirect("/api/core/404/")
 
 
 @swagger_auto_schema(
     operation_description="Add item to cart",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "user_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "product_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "quantity": openapi.Schema(type=openapi.TYPE_INTEGER),
+        },
+    ),
 )
 @api_view(["POST"])
-def add_to_cart(self, request):
+def add_to_cart(request):
     if request.user.id != None:
         data = {
             "user_id": request.POST["user_id"],
@@ -324,8 +406,10 @@ def add_to_cart(self, request):
             "quantity": request.POST["quantity"],
         }
         response = requests.post(url=append_url(CART_MS_URL, "add/"), data=data)
+        request.session["errors"] = ["Item added to cart."]
         return redirect("/api/connection/cart/")
     else:
+        request.session["errors"] = ["Failed to add to cart."]
         return redirect("/api/core/404/")
 
 
@@ -334,7 +418,7 @@ def add_to_cart(self, request):
     method="get",
 )
 @api_view(["GET"])
-def get_cart(self, request):
+def get_cart(request):
     if request.user.id != None:
         response = requests.get(url=append_url(CART_MS_URL, str(request.user.id)))
         items = json.loads(response.content)
@@ -410,10 +494,13 @@ def get_cart(self, request):
 
         subtotal = "{:.2f}".format(subtotal)
 
+        errors = request.session.pop("errors", None)
         context = {
             "cart_items": cart_items,
             "history": history,
             "subtotal": subtotal,
+            "user": get_user(request),
+            "errors": errors,
         }
         return render(request, "cart.html", context)
     else:
@@ -429,7 +516,7 @@ def get_cart(self, request):
     method="post",
 )
 @api_view(["GET", "POST"])
-def cart_item(self, request, id):
+def cart_item(request, id):
     if request.method == "GET":
         if request.user.id != None:
             response = requests.get(url=append_url(CART_MS_URL, "/item/", str(id)))
@@ -440,7 +527,11 @@ def cart_item(self, request, id):
             )
             product = json.loads(json.loads(response.content))
 
-            context = {"cart_item": cart_item, "product": product}
+            context = {
+                "cart_item": cart_item,
+                "product": product,
+                "user": get_user(request),
+            }
             return render(request, "cart_item.html", context)
         else:
             return redirect("/api/core/404/")
@@ -460,7 +551,11 @@ def cart_item(self, request, id):
             )
             product = json.loads(json.loads(response.content))
 
-            context = {"cart_item": cart_item, "product": product}
+            context = {
+                "cart_item": cart_item,
+                "product": product,
+                "user": get_user(request),
+            }
 
             return render(request, "cart_item.html", context)
         else:
@@ -472,9 +567,10 @@ def cart_item(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def remove_from_cart(self, request, id):
+def remove_from_cart(request, id):
     if request.user.id != None:
         requests.delete(url=append_url(CART_MS_URL, "/item/", str(id), "/"))
+        request.session["errors"] = ["Item removed from cart."]
         return redirect("/api/connection/cart/")
     else:
         return redirect("/api/core/404/")
@@ -485,9 +581,10 @@ def remove_from_cart(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def add_back(self, request, id):
+def add_back(request, id):
     if request.user.id != None:
         requests.put(url=append_url(CART_MS_URL, "/item/", str(id), "/"))
+        request.session["errors"] = ["Item added back to cart."]
         return redirect("/api/connection/cart/")
     else:
         return redirect("/api/core/404/")
@@ -498,7 +595,7 @@ def add_back(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def decrease_quantity(self, request, id):
+def decrease_quantity(request, id):
     if request.user.id != None:
         requests.post(
             url=append_url(CART_MS_URL, "/item/", str(id), "/"),
@@ -514,7 +611,7 @@ def decrease_quantity(self, request, id):
     method="get",
 )
 @api_view(["GET"])
-def increase_quantity(self, request, id):
+def increase_quantity(request, id):
     if request.user.id != None:
         requests.post(
             url=append_url(CART_MS_URL, "/item/", str(id), "/"),
@@ -532,9 +629,13 @@ def increase_quantity(self, request, id):
 @swagger_auto_schema(
     operation_description="Create a new order",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={"address": openapi.Schema(type=openapi.TYPE_INTEGER)},
+    ),
 )
 @api_view(["GET", "POST"])
-def place_order(self, request):
+def place_order(request):
     if request.method == "GET":
         if request.user.id != None:
             response = requests.get(url=append_url(CART_MS_URL, str(request.user.id)))
@@ -583,10 +684,13 @@ def place_order(self, request):
 
             addresses = Address.objects.filter(user_id=request.user.id)
 
+            errors = request.session.pop("errors", None)
             context = {
                 "cart_items": cart_items,
                 "addresses": addresses,
                 "subtotal": subtotal,
+                "user": get_user(request),
+                "errors": errors,
             }
 
             return render(request, "place_order.html", context)
@@ -651,7 +755,13 @@ def place_order(self, request):
             }
 
             response = requests.post(url=append_url(ORDER_MS_URL, "place/"), data=order)
+            if response.status_code == 201:
+                for cart_item in cart_items:
+                    requests.delete(
+                        url=append_url(CART_MS_URL, "item/", str(cart_item["id"]), "/")
+                    )
 
+            request.session["errors"] = ["Order placed successfully."]
             return redirect("/api/connection/order/all/")
         else:
             return redirect("/api/core/404/")
@@ -662,13 +772,16 @@ def place_order(self, request):
     method="get",
 )
 @api_view(["GET"])
-def view_all_orders(self, request):
+def view_all_orders(request):
     if request.user:
-        response = requests.get(
-            url=append_url(ORDER_MS_URL, "all/" + str(request.user.id) + "/")
-        )
+        try:
+            response = requests.get(
+                url=append_url(ORDER_MS_URL, "all/" + str(request.user.id) + "/")
+            )
 
-        orders = json.loads(json.loads(response.content))
+            orders = json.loads(json.loads(response.content))
+        except:
+            return render(request, "orders_page.html", context={"orders": []})
 
         orders = [
             {
@@ -700,6 +813,17 @@ def view_all_orders(self, request):
                             (order_item["price"] - order_item["discount"])
                             * order_item["quantity"]
                         ),
+                        "review": json.loads(
+                            requests.get(
+                                append_url(
+                                    REVIEW_MS_URL,
+                                    "/check/",
+                                    str(order_item["product_id"]),
+                                    "/",
+                                    str(order["user_id"]),
+                                )
+                            ).content
+                        ),
                     }
                     for order_item in order["order_items"]
                 ],
@@ -707,36 +831,32 @@ def view_all_orders(self, request):
             for order in orders
         ]
 
-        context = {"orders": orders}
+        errors = request.session.pop("errors", None)
+
+        context = {
+            "orders": orders,
+            "user": get_user(request),
+            "errors": errors,
+        }
 
         return render(request, "orders_page.html", context)
-
-
-# def order_page(self, request, id):
-#     if request.user:
-#         response = requests.get(url=append_url(ORDER_MS_URL, str(id), "/"))
-
-#         order = json.loads(response.content)
-
-#         context = {
-#             "order": order,
-#         }
-
-#         return render(request, "order_page.html", context)
-
-# def cancel_order(self, request, id):
-#     if request.user:
-#         response = requests.post(url=append_url(ORDER_MS_URL, str(id), "/"))
-
-#         return redirect("/api/connection/order/all/")
 
 
 @swagger_auto_schema(
     operation_description="Create a review",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "rating": openapi.Schema(type=openapi.TYPE_INTEGER, enum=[1, 2, 3, 4, 5]),
+            "content": openapi.Schema(type=openapi.TYPE_STRING),
+            "product_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "user_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        },
+    ),
 )
 @api_view(["POST"])
-def add_review(self, request, product_id):
+def add_review(request, product_id):
     data = {
         "content": request.POST["content"],
         "rating": request.POST["rating"],
@@ -745,5 +865,28 @@ def add_review(self, request, product_id):
     }
 
     requests.post(url=append_url(REVIEW_MS_URL, "add/"), data=data)
+    request.session["errors"] = ["Review posted successfully."]
+    return redirect("/api/connection/order/all/")
 
-    return redirect("/api/connection/product/" + str(product_id) + "/")
+
+@swagger_auto_schema(
+    operation_description="Delete a review",
+    method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "product_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "user_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        },
+    ),
+)
+@api_view(["POST"])
+def delete_review(request, product_id):
+    data = {
+        "product_id": product_id,
+        "user_id": request.user.id,
+    }
+
+    requests.post(url=append_url(REVIEW_MS_URL, "delete/"), data=data)
+    request.session["errors"] = ["Review deleted successfully."]
+    return redirect("/api/connection/order/all/")

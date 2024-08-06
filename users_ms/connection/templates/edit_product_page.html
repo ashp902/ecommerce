@@ -18,36 +18,32 @@
 {% include "components/navbar.html" %}
 
 <div class="container">
-
+    {% include "components/snackbars.html" %}
     <div class="formbox">
         <h1 style="width: 90%; height: 10%;text-align: left; margin: 2% 0% 4% 0;">Edit product</h1>
         <div style="display: flex; flex-direction: row; width: 90%; height: 80%; justify-content: center;">
-            <!-- <div style="width: 50%; height: 100%; display: flex; justify-content: flex-start; align-items: center;">
-                <div class="pic" style="background-image: url('/media/images/products/{{ product_id }}.jpg');">
-                </div>
-            </div> -->
             <div
                 style="width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <table>
                         <tr>
-                            <td>{{ form.product_name }}</td>
+                            <td title="Product Name">{{ form.product_name }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.product_description }}</td>
+                            <td title="Description">{{ form.product_description }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.product_tags }}</td>
+                            <td title="Tags">{{ form.product_tags }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.product_count }}</td>
+                            <td title="Count">{{ form.product_count }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.price }}</td>
+                            <td title="Price">{{ form.price }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.discount }}</td>
+                            <td title="Discount">{{ form.discount }}</td>
                         </tr>
                         <tr>
                             <td><input type="file" name="image" /></td>

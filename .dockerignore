@@ -8,3 +8,7 @@ readme/
 
 .git/
 .gitignore
+
+*.sqlite3
+
+*.py[cod]

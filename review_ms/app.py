@@ -10,7 +10,10 @@ app = Flask(__name__)
 
 app.config[
     "SQLALCHEMY_DATABASE_URI"
-] = "postgresql://postgres:postgres@127.0.0.1:5432/review_db"
+] = "postgresql://postgres:postgres@review-db:5432/review_db"
+# app.config[
+#     "SQLALCHEMY_DATABASE_URI"
+# ] = "postgresql://postgres:postgres@localhost:5432/review_db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -47,25 +50,66 @@ class Review(db.Model):
 # Create a review
 @app.route("/add/", methods=["POST"])
 def add_review():
-    review = Review(
-        content=request.form["content"],
-        rating=request.form["rating"],
-        user_id=request.form["user_id"],
-        product_id=request.form["product_id"],
+    review = Review.query.filter(
+        Review.product_id == request.form["product_id"],
+        Review.user_id == request.form["user_id"],
     )
-    db.session.add(review)
-    db.session.commit()
+    if review.count():
+        review[0].content = request.form["content"]
+        review[0].rating = request.form["rating"]
+        db.session.commit()
+        return "Updated"
+    else:
+        review = Review(
+            content=request.form["content"],
+            rating=request.form["rating"],
+            user_id=request.form["user_id"],
+            product_id=request.form["product_id"],
+        )
+        db.session.add(review)
+        db.session.commit()
 
-    return "ok"
+        return "Created"
+
+
+@app.route("/delete/", methods=["POST"])
+def delete_review():
+    review = Review.query.filter(
+        Review.product_id == request.form["product_id"],
+        Review.user_id == request.form["user_id"],
+    )
+    if review.count():
+        db.session.delete(review[0])
+        db.session.commit()
+        return "Deleted"
+    return "No record found"
 
 
 # Get reviews of a product
-@app.route("/product/<int:product_id>/", methods=["GET"])
+@app.route("/product/<int:product_id>/", methods=["GET", "DELETE"])
 def get_reviews(product_id):
     reviews = Review.query.filter(Review.product_id == product_id)
-    reviews = [review.to_dict() for review in reviews]
+    if request.method == "GET":
+        reviews = [review.to_dict() for review in reviews]
 
-    return json.dumps({"reviews": reviews})
+        return json.dumps({"reviews": reviews})
+    elif request.method == "DELETE":
+        for review in reviews:
+            db.session.delete(review)
+        db.session.commit()
+        return "Cleared reviews"
+
+
+@app.route("/check/<int:product_id>/<int:user_id>/", methods=["GET"])
+def check_for_review(product_id, user_id):
+    review = Review.query.filter(
+        Review.product_id == product_id, Review.user_id == user_id
+    )
+    if review.count():
+        print(review[0].to_dict())
+        return json.dumps(review[0].to_dict())
+    else:
+        return json.dumps({"content": "", "rating": 0})
 
 
 if __name__ == "__main__":

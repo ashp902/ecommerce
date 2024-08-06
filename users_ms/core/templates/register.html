@@ -11,9 +11,10 @@
 {% include "components/navbar.html" %}
 
 <div class="container">
+    {% include "components/snackbars.html" %}
     <div class="formbox">
         <h1>Register</h1>
-        <form method="POST" action="">
+        <form method="POST">
             {% csrf_token %}
             <table>
                 <tr>
@@ -37,20 +38,23 @@
                     <td>{{ form.gender }}</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><button type="submit" name="buyer"
-                            formaction="/api/core/register/buyer/">Register</button></td>
+                    <td colspan="2"><button type="submit" name="buyer" formaction="/api/core/register/buyer/"
+                            formmethod="post">Register</button></td>
                 </tr>
                 <tr>
                     <td colspan="2" style="text-align: center;">or</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><button type="submit" name="seller" formaction="/api/core/register/seller/">Register
+                    <td colspan="2"><button type="submit" name="seller" formaction="/api/core/register/seller/"
+                            formmethod="post">Register
                             as a Seller</button></td>
                 </tr>
             </table>
         </form>
     </div>
 </div>
+
+
 
 
 {% endblock %}

@@ -3,7 +3,7 @@ from .views import (
     create_buyer,
     create_seller,
     registration_page,
-    Login,
+    login,
     home,
     profile,
     address,
@@ -20,10 +20,10 @@ urlpatterns = [
     # Login page for all users
     path(
         "login/",
-        Login.as_view(),
+        login,
         name="login",
     ),
-    path("register/", registration_page),
+    path("register/", registration_page, name="register"),
     # Register page for buyers
     path(
         "register/buyer/",

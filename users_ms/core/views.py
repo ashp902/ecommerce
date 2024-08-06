@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
@@ -18,56 +19,56 @@ import json
 import os
 
 from .models import User, Address
-from .serializers import UserSerializer, RegisterUserSeraializer
 from .forms import RegisterUserForm, LoginUserForm, EditUserForm, AddressForm
 
 
-# # Landing page view
-# def landing_page(request):
-#     all_products = requests.get(url="http://127.0.0.1:8001/api/connection/product/all/")
-#     all_products = json.loads(json.loads(all_products.content))
-#     print(request.user.id)
-#     context = {
-#         "all_products": all_products,
-#         "user": request.user.id != None,
-#     }
-#     return render(request, "landing_page.html", context)
+def get_user(request):
+    if request.user.id == None:
+        return False
+    return request.user
 
 
-# Views for login and register pages
-# class LoginRegisterViewSet(viewsets.ViewSet):
-# GET, /api/core/all/
-# def all_users(self, request):  # Displays data of all users
-#     users = User.objects.all()
-#     serializer = UserSerializer(users, many=True)
+def get_categories(products):
+    tag_counts = {}
+    for product in products:
+        for tag in product["product_tags"][0].split(","):
+            if tag in tag_counts:
+                tag_counts[tag] += 1
+            else:
+                tag_counts[tag] = 1
+    tag_counts = dict(sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:4])
+    return tag_counts
 
-#     return Response(serializer.data)
 
-
-# POST, /api/core/register/buyer/
 @swagger_auto_schema(
-    operation_description="Creates a user with buyer role",
+    operation_description="Create a user with buyer role",
     method="post",
-    # request_body=openapi.Schema(
-    #     type=openapi.TYPE_OBJECT,
-    #     properties={
-    #         "first_name": openapi.Schema(type=openapi.TYPE_STRING),
-    #     },
-    # ),
-    # manual_parameters=[
-    #     openapi.Parameter("first_name", openapi.IN_QUERY, type=openapi.TYPE_STRING)
-    # ],
-    request_body=RegisterUserSeraializer,
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL
+            ),
+            "username": openapi.Schema(type=openapi.TYPE_STRING),
+            "password1": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "password2": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "date_of_birth": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE
+            ),
+            "gender": openapi.Schema(type=openapi.TYPE_STRING, enum=["M", "F", "O"]),
+        },
+    ),
 )
 @api_view(["POST"])
-def create_buyer(request):  # Registers a new buyer
-    # if request.method == "GET":
-    #     print(request.body)
-    #     return HttpResponse(request.build_absolute_uri())
-
+def create_buyer(request):
     form = RegisterUserForm(request.POST)
 
-    # if all fields are valid save and login buyer
     if form.is_valid():
         form.save_buyer()
 
@@ -76,30 +77,54 @@ def create_buyer(request):  # Registers a new buyer
 
         user = authenticate(email=email, password=raw_password)
 
-        # if authentication is successful, redirect to home page
         if user is not None:
-            login(request, user)
+            auth_login(request, user)
+            request.session["errors"] = ["User logged in"]
             return redirect("home")
 
-        # if authentication fails, redirect to login page
         else:
             return redirect("login")
 
-    # if any field is not valid, redirect to register page
     else:
-        return redirect("register_buyer")
+        errors = form.errors
+        error_messages = []
+        for error in errors.values():
+            error_messages += error
+
+        request.session["errors"] = error_messages
+
+        return redirect("register")
 
 
-# POST, /api/core/register/seller/
 @swagger_auto_schema(
     operation_description="Create a user with seller role",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL
+            ),
+            "username": openapi.Schema(type=openapi.TYPE_STRING),
+            "password1": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "password2": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "date_of_birth": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE
+            ),
+            "gender": openapi.Schema(type=openapi.TYPE_STRING, enum=["M", "F", "O"]),
+        },
+    ),
 )
 @api_view(["POST"])
-def create_seller(request):  # Registers a new seller
+def create_seller(request):
     form = RegisterUserForm(request.POST)
 
-    # if all fields are valid save and login seller
     if form.is_valid():
         form.save_seller()
 
@@ -108,97 +133,113 @@ def create_seller(request):  # Registers a new seller
 
         user = authenticate(email=email, password=raw_password)
 
-        # if authentication is successful, redirect to home page
         if user is not None:
-            login(request, user)
+            auth_login(request, user)
+            request.session["errors"] = ["User logged in"]
             return redirect("home")
 
-        # if authentication fails, redirect to login page
         else:
             return redirect("login")
 
-    # if any field is not valid, redirect to register page
     else:
-        return redirect("register_seller")
+        errors = form.errors
+        error_messages = []
+        for error in errors.values():
+            error_messages += error
+
+        request.session["errors"] = error_messages
+
+        return redirect("register")
 
 
-# GET, /api/core/register/
 @swagger_auto_schema(
-    operation_description="Renders registration page",
+    operation_description="Renders user registration page",
     method="get",
 )
 @api_view(["GET"])
 def registration_page(request):
-    # if any user is already logged in, redirect to home page
     if request.user.id != None:
         return redirect("home")
+
+    errors = request.session.pop("errors", None)
 
     form = RegisterUserForm()
 
     context = {
         "form": form,
-        "user": request.user.id != None,
+        "user": get_user(request),
+        "errors": errors,
     }
 
     return render(request, "register.html", context)
 
 
-class Login(APIView):
-    # POST, /api/core/login/
-    # @swagger_auto_schema(
-    #     operation_description="Logs in a user",
-    #     method="post",
-    # )
-    # @api_view(["POST"])
-    def post(self, request):
-        form = LoginUserForm(request.POST)
-
-        email = form["email"].value()
-        raw_password = form["password"].value()
-
-        user = authenticate(email=email, password=raw_password)
-
-        # if authentication is successful, redirect to home page
-        if user is not None:
-            login(request, user)
-            return redirect("home")
-
-        # if authentication fails, display error
-        else:
-            return HttpResponse("not valid")
-
-    # GET, /api/core/login/
-    # @swagger_auto_schema(
-    #     operation_description="Renders login page",
-    #     method="get",
-    # )
-    # @api_view(["GET"])
-    def get(self, request):
-        # if any user is already logged in, redirect to home page
+@swagger_auto_schema(
+    operation_description="Renders login page",
+    method="get",
+)
+@swagger_auto_schema(
+    operation_description="Logs in user",
+    method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL
+            ),
+            "password": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+        },
+    ),
+)
+@api_view(["GET", "POST"])
+def login(request):
+    if request.method == "GET":
         if request.user.id != None:
             return redirect("home")
+
+        errors = request.session.pop("errors", None)
 
         form = LoginUserForm()
 
         context = {
             "form": form,
-            "user": request.user.id != None,
+            "user": get_user(request),
+            "errors": errors,
         }
 
         return render(request, "login.html", context)
+    elif request.method == "POST":
+        form = LoginUserForm(request.POST)
+        # print(request.POST)
+
+        email = request.POST["email"]
+        raw_password = request.POST["password"]
+        # print(email, raw_password)
+
+        user = authenticate(email=email, password=raw_password)
+
+        if user is not None:
+            auth_login(request, user)
+            request.session["errors"] = ["User logged in"]
+            return redirect("home")
+
+        else:
+            request.session["errors"] = ["Invalid Email ID or Password"]
+            return redirect("login")
 
 
-# Home page view, /api/core/home/
 @swagger_auto_schema(
     operation_description="Renders home page",
     method="get",
 )
 @api_view(["GET"])
 def home(request):
-    # if user is logged in
+    errors = request.session.pop("errors", None)
+
     if request.user.id != None:
         user = User.objects.get(id=request.user.id)
-        # if user is a buyer
         if user.user_role_id == 1:
             products = requests.get(
                 url="http://127.0.0.1:8001/api/connection/product/all/"
@@ -214,17 +255,20 @@ def home(request):
                 for product in products
             ]
 
+            categories = get_categories(products)
+
             paginator = Paginator(products, 9)
             page = request.GET.get("page")
             products = paginator.get_page(page)
 
             context = {
                 "products": products,
-                "user": user,
+                "user": get_user(request),
+                "errors": errors,
+                "categories": categories,
             }
             return render(request, "landing_page.html", context)
 
-        # if user is a seller
         elif user.user_role_id == 2:
             products = requests.get(
                 url="http://127.0.0.1:8001/api/connection/product/myproducts/"
@@ -247,12 +291,12 @@ def home(request):
 
             context = {
                 "products": products,
-                "user": user,
+                "user": get_user(request),
+                "errors": errors,
             }
             return render(request, "landing_page.html", context)
         elif user.user_role_id == 3:
             return redirect("/admin")
-    # if no user is logged in
     else:
         products = requests.get(url="http://127.0.0.1:8001/api/connection/product/all/")
         products = json.loads(json.loads(json.loads(products.content)))["data"]
@@ -272,12 +316,12 @@ def home(request):
 
         context = {
             "products": products,
-            "user": request.user.id != None,
+            "user": get_user(request),
+            "errors": errors,
         }
         return render(request, "landing_page.html", context)
 
 
-# Profile page, /api/core/profile/
 @swagger_auto_schema(
     operation_description="Renders profile page",
     method="get",
@@ -285,16 +329,36 @@ def home(request):
 @swagger_auto_schema(
     operation_description="Updates user details",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL
+            ),
+            "username": openapi.Schema(type=openapi.TYPE_STRING),
+            "password1": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "password2": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_PASSWORD
+            ),
+            "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "date_of_birth": openapi.Schema(
+                type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE
+            ),
+            "gender": openapi.Schema(type=openapi.TYPE_STRING, enum=["M", "F", "O"]),
+            "img": openapi.Schema(type=openapi.TYPE_FILE),
+        },
+    ),
 )
 @login_required
 @api_view(["GET", "POST"])
 def profile(request):
-    # GET request displays the profile page with user details
     if request.method == "GET":
         user_id = request.user.id
         user = User.objects.get(id=user_id)
 
-        # Populate form with user details
         data = {
             "email": user.email,
             "username": user.username,
@@ -307,21 +371,22 @@ def profile(request):
         }
         form = EditUserForm(data)
 
+        errors = request.session.pop("errors", None)
+
         context = {
             "form": form,
-            "user": user,
+            "user": get_user(request),
+            "errors": errors,
         }
 
         return render(request, "profile.html", context)
 
-    # POST request updates the user details and displays the profile page
     elif request.method == "POST":
         user_id = request.user.id
         user = User.objects.get(id=user_id)
 
         form = EditUserForm(request.POST)
 
-        # Update the user instance with new details
         user.first_name = form["first_name"].value()
         user.last_name = form["last_name"].value()
         user.date_of_birth = form["date_of_birth"].value()
@@ -333,32 +398,39 @@ def profile(request):
             and form["password1"].value() == form["password2"].value()
         ):
             user.set_password(form["password1"].value())
+            user.save()
+            return redirect("/api/core/login/")
 
         user.save()
 
         context = {
             "form": form,
-            "user": user,
+            "user": get_user(request),
         }
+        img = False
+        try:
+            img = request.FILES["image"]
+        except:
+            print("Fetch failed")
+            pass
+        if img:
+            img_extension = os.path.splitext(img.name)[1]
 
-        img = request.FILES["image"]
-        img_extension = os.path.splitext(img.name)[1]
+            path = "media/images/users/"
 
-        path = "media/images/users/"
+            if not os.path.exists(path):
+                os.mkdir(path)
 
-        if not os.path.exists(path):
-            os.mkdir(path)
+            img_save_path = path + str(user.id) + img_extension
 
-        img_save_path = path + str(user.id) + img_extension
+            with open(img_save_path, "wb+") as f:
+                for chunk in img.chunks():
+                    f.write(chunk)
 
-        with open(img_save_path, "wb+") as f:
-            for chunk in img.chunks():
-                f.write(chunk)
-
-        return render(request, "profile.html", context)
+        request.session["errors"] = ["User details updated successfully"]
+        return redirect("profile")
 
 
-# Address page, only available for buyers, /api/core/address/
 @swagger_auto_schema(
     operation_description="Renders addresses page",
     method="get",
@@ -369,23 +441,21 @@ def address(request):
     user_id = request.user.id
     user = User.objects.get(id=user_id)
 
-    # If user is not a buyer, display error
     if user.user_role_id != 1:
         return redirect("404")
 
-    # GET request displays all addresses of the current user
-    if request.method == "GET":
-        addresses = Address.objects.filter(user_id=user_id)
+    addresses = Address.objects.filter(user_id=user_id)
+    errors = request.session.pop("errors", None)
 
-        context = {
-            "addresses": addresses,
-            "user": user,
-        }
+    context = {
+        "addresses": addresses,
+        "user": get_user(request),
+        "errors": errors,
+    }
 
-        return render(request, "address.html", context)
+    return render(request, "address.html", context)
 
 
-# Create new address page, /api/core/address/create/
 @swagger_auto_schema(
     operation_description="Renders create address form",
     method="get",
@@ -393,6 +463,19 @@ def address(request):
 @swagger_auto_schema(
     operation_description="Creates a new address",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "address_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "door_no": openapi.Schema(type=openapi.TYPE_STRING),
+            "street": openapi.Schema(type=openapi.TYPE_STRING),
+            "area": openapi.Schema(type=openapi.TYPE_STRING),
+            "city": openapi.Schema(type=openapi.TYPE_STRING),
+            "state": openapi.Schema(type=openapi.TYPE_STRING),
+            "country": openapi.Schema(type=openapi.TYPE_STRING),
+            "pincode": openapi.Schema(type=openapi.TYPE_NUMBER),
+        },
+    ),
 )
 @login_required
 @api_view(["GET", "POST"])
@@ -400,37 +483,40 @@ def create_address(request):
     user_id = request.user.id
     user = User.objects.get(id=user_id)
 
-    # If user is not a buyer, display error
     if user.user_role_id != 1:
         return redirect("404")
 
-    # GET request displays form to create a new address
     if request.method == "GET":
+        errors = request.session.pop("errors", None)
         form = AddressForm()
         context = {
             "form": form,
-            "user": user,
+            "user": get_user(request),
+            "errors": errors,
         }
 
         return render(request, "address_form.html", context)
 
-    # POST request creates a new address
     elif request.method == "POST":
         form = AddressForm(request.POST)
 
-        # If all fields are valid, save the address to the current user
         if form.is_valid():
             form.save_with_user_id(request.user.id)
 
-            # Redirect to address page
+            request.session["errors"] = ["Address created successfully"]
+
             return redirect("address")
 
-        # If any field is not valid, redirect to create address page
         else:
+            errors = form.errors
+            error_messages = []
+            for error in errors.values():
+                error_messages += error
+
+            request.session["errors"] = error_messages
             return redirect("address_form")
 
 
-# Edit address page, /api/core/address/edit/<int:id>/
 @swagger_auto_schema(
     operation_description="Renders edit address page",
     method="get",
@@ -438,15 +524,26 @@ def create_address(request):
 @swagger_auto_schema(
     operation_description="Updates the address details",
     method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "address_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "door_no": openapi.Schema(type=openapi.TYPE_STRING),
+            "street": openapi.Schema(type=openapi.TYPE_STRING),
+            "area": openapi.Schema(type=openapi.TYPE_STRING),
+            "city": openapi.Schema(type=openapi.TYPE_STRING),
+            "state": openapi.Schema(type=openapi.TYPE_STRING),
+            "country": openapi.Schema(type=openapi.TYPE_STRING),
+            "pincode": openapi.Schema(type=openapi.TYPE_NUMBER),
+        },
+    ),
 )
 @login_required
 @api_view(["GET", "POST"])
 def edit_address(request, id):
-    # GET request displays a form to edit the selected address
     if request.method == "GET":
         address = Address.objects.get(id=id)
 
-        # Populate the form with current address data
         data = {
             "address_name": address.address_name,
             "door_no": address.door_no,
@@ -459,15 +556,17 @@ def edit_address(request, id):
         }
         form = AddressForm(data)
 
+        errors = request.session.pop("errors", None)
+
         context = {
             "form": form,
-            "user": request.user,
+            "user": get_user(request),
             "address_id": address.id,
+            "errors": errors,
         }
 
         return render(request, "edit_address.html", context)
 
-    # POST request updates the address with new data
     elif request.method == "POST":
         form = AddressForm(request.POST)
         address = Address.objects.get(id=id)
@@ -481,11 +580,11 @@ def edit_address(request, id):
         address.pincode = form["pincode"].value()
 
         address.save()
+        request.session["errors"] = ["Address edited successfully"]
 
         return redirect("address")
 
 
-# Delete address, /api/core/address/delete/<int:id>/
 @swagger_auto_schema(
     operation_description="Delete an address",
     method="get",
@@ -495,10 +594,12 @@ def edit_address(request, id):
 def delete_address(request, id):
     address = Address.objects.get(id=id)
     address.delete()
+
+    request.session["errors"] = ["Address deleted successfully"]
+
     return redirect("address")
 
 
-# Logout, /api/core/logout/
 @swagger_auto_schema(
     operation_description="Logs out an user",
     method="get",
@@ -507,22 +608,22 @@ def delete_address(request, id):
 @api_view(["GET"])
 def logout_user(request):
     logout(request)
+
+    request.session["errors"] = ["Logged out successfully"]
     return redirect("home")
 
 
-# 404 page, /api/core/404/
 @swagger_auto_schema(
     operation_description="404 page",
     method="get",
 )
 @api_view(["GET"])
 def no_page(request):
-    if request.user.id != None:
-        context = {
-            "user": request.user,
-        }
-    else:
-        context = {
-            "user": False,
-        }
+    errors = request.session["errors"] if "errors" in request.session else []
+    request.session.pop("errors", None)
+
+    context = {
+        "user": get_user(request),
+        "errors": errors,
+    }
     return render(request, "404.html", context, status=status.HTTP_404_NOT_FOUND)

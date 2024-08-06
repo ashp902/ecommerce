@@ -11,7 +11,10 @@ app = Flask(__name__)
 
 app.config[
     "SQLALCHEMY_DATABASE_URI"
-] = "postgresql://postgres:postgres@127.0.0.1:5432/cart_db"
+] = "postgresql://postgres:postgres@cart-db:5432/cart_db"
+# app.config[
+#     "SQLALCHEMY_DATABASE_URI"
+# ] = "postgresql://postgres:postgres@localhost:5432/cart_db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -58,6 +61,7 @@ def clean_history(cart_item):
 
 @app.route("/add/", methods=["POST"])
 def add_to_cart():
+    # Check if direct count is possible
     cart_item = CartItem.query.filter(
         CartItem.user_id == request.form.get("user_id"),
         CartItem.product_id == request.form.get("product_id"),
@@ -85,8 +89,10 @@ def get_cart(user_id):
     cart_items = CartItem.query.filter(
         CartItem.user_id == user_id, CartItem.status == "In cart"
     )
-    history = CartItem.query.filter(
-        CartItem.user_id == user_id, CartItem.status == "Removed"
+    history = (
+        CartItem.query.filter(CartItem.user_id == user_id, CartItem.status == "Removed")
+        .order_by(CartItem.added_time.desc())
+        .limit(10)
     )
 
     return json.dumps(
@@ -124,7 +130,7 @@ def cart_item(id):
         if cart_item.status == "In cart":
             cart_item.status = "Removed"
             db.session.commit()
-            clean_history(cart_item)
+            # clean_history(cart_item)
         # if item is already removed from cart, delete it
         elif cart_item.status == "Removed":
             db.session.delete(cart_item)

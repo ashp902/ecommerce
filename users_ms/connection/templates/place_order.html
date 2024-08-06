@@ -13,6 +13,39 @@
 {% include "components/navbar.html" %}
 
 <div class="container">
+    {% include "components/snackbars.html" %}
+    {% for cart_item in cart_items %}
+    <div class="cartcard">
+        <a class="cartimg" style="background-image: url('/media/images/products/{{ cart_item.product_id }}.jpg');"
+            href="/api/connection/product/{{ cart_item.product_id }}/">
+        </a>
+        <div class="details">
+            <h2>{{ cart_item.product.product_name }}</h2>
+            <p>{{ cart_item.product.product_description }}</p>
+        </div>
+        <div class="price">
+            {% if cart_item.product.discount > 0 %}
+            <span style="text-decoration: line-through; font-size: 1em">$ {{ cart_item.product.price }}</span>
+            <span style="font-size: 1.2em;">$ {{ cart_item.effective_price }}</span>
+            {% else %}
+            <span style="font-size: 1.2em;">$ {{ cart_item.product.price }}</span>
+            {% endif %}
+        </div>
+        <div class="controls">
+            <div class="quantity">
+                <!-- <a href="/api/connection/cart/update/minus/{{ cart_item.id }}/">-</a> -->
+                <span>{{ cart_item.quantity }}</span>
+                <!-- <a href="/api/connection/cart/update/plus/{{ cart_item.id }}/">+</a> -->
+            </div>
+            <a href="/api/connection/cart/delete/{{ cart_item.id }}/">Remove</a>
+        </div>
+        <div class="total">
+            $ {{ cart_item.product_total }}
+            <br />
+            <!-- {{cart_item}} -->
+        </div>
+    </div>
+    {% endfor %}
     <div class="card">
         <h3>Total of your order</h3>
         <h2>$ {{ subtotal }}</h2>

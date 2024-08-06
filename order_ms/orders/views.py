@@ -32,6 +32,21 @@ def random_generator():
             return x
 
 
+def send_email():
+    credentials = json.load(open("credentials.json"))
+
+    s = smtplib.SMTP("smtp.gmail.com", 587)
+    s.starttls()
+
+    s.login(credentials["email"], credentials["password"])
+
+    message = "Order placed successfully."
+
+    s.sendmail(credentials["email"], credentials["email"], message)
+
+    s.quit()
+
+
 # POST, /api/order/place/
 @swagger_auto_schema(
     operation_description="Create a new order",
@@ -80,7 +95,7 @@ def place_order(request):
                 order_item.save()
         except:
             return Response("Invalid order data", status=status.HTTP_400_BAD_REQUEST)
-
+        # send_email()
         return Response("Order received", status=status.HTTP_201_CREATED)
     else:
         return Response("Invalid order data", status=status.HTTP_400_BAD_REQUEST)

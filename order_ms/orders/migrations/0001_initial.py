@@ -5,35 +5,61 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('transactions', '__first__'),
+        ("transactions", "__first__"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.BigIntegerField()),
-                ('address_id', models.BigIntegerField()),
-                ('placed_time', models.DateTimeField()),
-                ('updated_time', models.DateTimeField()),
-                ('delivery_status', models.CharField(max_length=255)),
-                ('total_amount', models.FloatField()),
-                ('transaction', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='transactions.transaction')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_id", models.BigIntegerField()),
+                ("address_id", models.BigIntegerField()),
+                ("placed_time", models.DateTimeField()),
+                ("updated_time", models.DateTimeField()),
+                ("delivery_status", models.CharField(max_length=255)),
+                ("total_amount", models.FloatField()),
+                (
+                    "transaction",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="transactions.transaction",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('product_id', models.BigIntegerField()),
-                ('price', models.FloatField()),
-                ('discount', models.FloatField()),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='orders.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("product_id", models.BigIntegerField()),
+                ("price", models.FloatField()),
+                ("discount", models.FloatField()),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="orders.order"
+                    ),
+                ),
             ],
         ),
     ]

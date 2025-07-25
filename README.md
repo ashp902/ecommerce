@@ -1,8 +1,6 @@
 
 # ShopLift - An ecommerce website
 
-This project was developed as a part of the EPAM Python RD Training curriculum.
-
 
 ## Tools
 - Django REST Framework
